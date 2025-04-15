@@ -15,14 +15,16 @@
             position: relative;
             display: inline-block;
             margin: 0 auto;
+            max-width: 100%;
         }
         #boombox {
-            width: auto;
+            width: 100%;
+            max-width: 800px; /* Adjust based on your new image size */
             height: auto;
-            max-width: 100%;
             display: block;
             cursor: pointer;
         }
+        /* Visual button overlays (optional for debugging) */
         .btn-overlay {
             position: absolute;
             border: 2px solid lime;
@@ -34,22 +36,25 @@
             color: cyan;
             margin-top: 20px;
             font-size: 1.2em;
+            min-height: 2em;
         }
     </style>
 </head>
 <body>
     <div id="boombox-container">
+        <!-- Your new boombox image with updated image map -->
         <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons">
         
-        <!-- Visual overlays (optional) -->
-        <div class="btn-overlay" style="left: 694px; top: 585px; width: 41px; height: 36px;"></div>
-        <div class="btn-overlay" style="left: 741px; top: 583px; width: 41px; height: 40px;"></div>
-        <div class="btn-overlay" style="left: 793px; top: 583px; width: 39px; height: 39px;"></div>
+        <!-- Visual overlays matching your new coordinates -->
+        <div class="btn-overlay" style="left: 692px; top: 586px; width: 45px; height: 37px;"></div>
+        <div class="btn-overlay" style="left: 743px; top: 586px; width: 41px; height: 37px;"></div>
+        <div class="btn-overlay" style="left: 790px; top: 584px; width: 44px; height: 40px;"></div>
         
+        <!-- Updated image map with your new coordinates -->
         <map name="buttons">
-            <area shape="rect" coords="694,585,735,621" data-action="prev" href="javascript:void(0)" alt="Previous">
-            <area shape="rect" coords="741,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
-            <area shape="rect" coords="793,583,832,622" data-action="next" href="javascript:void(0)" alt="Next">
+            <area shape="rect" coords="692,586,737,623" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="743,586,784,623" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="790,584,834,624" data-action="next" href="javascript:void(0)" alt="Next">
         </map>
     </div>
     
@@ -63,9 +68,9 @@
         let playerReady = false;
         let currentTrackIndex = 0;
         
-        // Temporary playlist (replace with yours later)
+        // Temporary playlist (same as before)
         const playlist = [
-            { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' }, // Classic Rickroll
+            { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' },
             { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' }, 
             { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You' },
             { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito' }
@@ -103,14 +108,13 @@
                     },
                     'onStateChange': (e) => {
                         if (e.data === YT.PlayerState.ENDED) {
-                            playNext(); // Auto-play next song when current ends
+                            playNext();
                         }
                     }
                 }
             });
         }
 
-        // Update status text
         function updateStatus() {
             const status = document.getElementById('status');
             const songTitle = playlist[currentTrackIndex].title;
@@ -122,21 +126,18 @@
             }
         }
 
-        // Play previous track
         function playPrev() {
             currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
             player.loadVideoById(playlist[currentTrackIndex].id);
             updateStatus();
         }
 
-        // Play next track
         function playNext() {
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             player.loadVideoById(playlist[currentTrackIndex].id);
             updateStatus();
         }
 
-        // Toggle play/pause
         function togglePlay() {
             if (player.getPlayerState() === YT.PlayerState.PLAYING) {
                 player.pauseVideo();
@@ -146,25 +147,26 @@
             updateStatus();
         }
 
-        // Setup button controls
         function setupControls() {
+            // Previous button
             document.querySelector('area[data-action="prev"]').addEventListener('click', (e) => {
                 e.preventDefault();
                 if (playerReady) playPrev();
             });
 
+            // Play/Pause button
             document.querySelector('area[data-action="play"]').addEventListener('click', (e) => {
                 e.preventDefault();
                 if (playerReady) togglePlay();
             });
 
+            // Next button
             document.querySelector('area[data-action="next"]').addEventListener('click', (e) => {
                 e.preventDefault();
                 if (playerReady) playNext();
             });
         }
 
-        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', () => {
             initPlayer();
             setupControls();
