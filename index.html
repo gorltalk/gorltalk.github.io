@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>GorlTalk Radio Boombox</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { 
-            background: #000; 
-            text-align: center;
-            font-family: Arial;
-        }
-    </style>
-</head>
 <body>
-    <!-- Using relative path (best practice) -->
-    <img src="boombox.png" alt="Boombox" style="max-width:100%">
-    
-    <!-- Rest of your player code remains unchanged -->
-    <script>
-        // Your existing JavaScript
-    </script>
+    <div id="boombox-container">
+        <!-- CHANGE THIS LINE -->
+        <img id="boombox" src="boombox.png" usemap="#buttons" alt="Boombox">
+        
+        <!-- Rest of your code stays the same -->
+        <map name="buttons">
+            ...
+        </map>
+    </div>
+    ...
 </body>
-</html>
