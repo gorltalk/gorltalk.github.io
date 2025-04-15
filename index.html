@@ -14,13 +14,11 @@
             font-family: Arial;
             overflow-x: hidden;
         }
-        /* Using original image size - NO SCALING */
         #boombox {
-            width: 800px; /* Original image width */
+            width: 800px;
             height: auto;
             cursor: pointer;
         }
-        /* Visualize button zones */
         area {
             outline: 2px solid red !important;
             opacity: 0.5;
@@ -28,53 +26,90 @@
     </style>
 </head>
 <body>
-    <!-- Original image size - direct mapping -->
     <img id="boombox" src="boombox.png" usemap="#buttons">
     
-    <!-- PERFECT COORDINATES FOR YOUR ORIGINAL IMAGE -->
     <map name="buttons">
-        <!-- Left Triangle (Previous) -->
         <area shape="rect" coords="210,620,290,700" data-action="prev" alt="Previous">
-        <!-- Center Triangle (Play/Pause) -->
         <area shape="rect" coords="400,620,480,700" data-action="play" alt="Play/Pause">
-        <!-- Right Triangle (Next) -->
         <area shape="rect" coords="590,620,670,700" data-action="next" alt="Next">
     </map>
 
     <script>
-    // Simplified Player Code
+    // 1. GLOBAL PLAYER REFERENCE
     let player;
-    
-    // 1. Load YouTube API
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
 
-    // 2. Initialize Player
-    window.onYouTubeIframeAPIReady = () => {
+    // 2. SAFE YOUTUBE API LOAD
+    function loadYouTubeAPI() {
+      return new Promise((resolve) => {
+        window.onYouTubeIframeAPIReady = resolve;
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+      });
+    }
+
+    // 3. INITIALIZE PLAYER
+    async function initPlayer() {
+      try {
+        await loadYouTubeAPI();
+        
         player = new YT.Player('player', {
-            height: '0',
-            width: '0',
-            videoId: 'dQw4w9WgXcQ',
-            playerVars: {
-                origin: window.location.href,
-                autoplay: 0,
-                controls: 0
+          height: '0',
+          width: '0',
+          videoId: 'dQw4w9WgXcQ',
+          playerVars: {
+            origin: window.location.origin,
+            autoplay: 0,
+            controls: 0,
+            modestbranding: 1
+          },
+          events: {
+            'onReady': (e) => {
+              e.target.setVolume(80);
+              setupButtons();
+              console.log('✅ Player ready!');
+            },
+            'onError': (e) => {
+              console.error('Player error:', e.data);
             }
+          }
         });
-    };
+      } catch (err) {
+        console.error('Failed to load player:', err);
+      }
+    }
 
-    // 3. Button Controls (direct mapping)
-    document.querySelector('[data-action="play"]').onclick = () => {
-        player.playVideo();
-        console.log("▶️ Play");
-    };
-    document.querySelector('[data-action="prev"]').onclick = () => {
-        console.log("⏮️ Previous");
-    };
-    document.querySelector('[data-action="next"]').onclick = () => {
-        console.log("⏭️ Next");
-    };
+    // 4. BUTTON CONTROLS
+    function setupButtons() {
+      // Play/Pause
+      document.querySelector('[data-action="play"]').addEventListener('click', () => {
+        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+          console.log('⏸ Paused');
+        } else {
+          player.playVideo();
+          console.log('▶️ Playing');
+        }
+      });
+
+      // Next
+      document.querySelector('[data-action="next"]').addEventListener('click', () => {
+        console.log('⏭️ Next track');
+      });
+
+      // Previous
+      document.querySelector('[data-action="prev"]').addEventListener('click', () => {
+        console.log('⏮️ Previous track');
+      });
+    }
+
+    // 5. START EVERYTHING
+    initPlayer();
+
+    // Debug: Force retry if needed
+    setTimeout(() => {
+      if (!window.YT) console.warn('YouTube API not loaded after 5s');
+    }, 5000);
     </script>
 </body>
 </html>
