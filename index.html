@@ -11,60 +11,47 @@
             text-align: center;
             font-family: Arial;
         }
-        #boombox-container {
-            position: relative;
-            width: 500px;
-            margin: 0 auto;
-        }
         #boombox {
-            width: 100%;
-            display: block;
+            width: 800px; /* Match your image size */
+            height: auto;
+            cursor: pointer;
         }
-        /* PROPERLY ALIGNED BUTTON ZONES */
-        .btn-overlay {
-            position: absolute;
-            border: 3px solid lime;
-            background: rgba(0,255,0,0.3);
-            z-index: 10;
+        /* Visible button zones */
+        area {
+            outline: 3px solid lime !important;
+            opacity: 0.7;
         }
         #status {
             color: cyan;
             margin-top: 20px;
-            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <div id="boombox-container">
-        <img id="boombox" src="boombox.png" usemap="#buttons">
-        
-        <!-- FINAL PERFECTED BUTTON OVERLAYS -->
-        <div class="btn-overlay" style="left: 100px; top: 200px; width: 70px; height: 70px;"></div>
-        <div class="btn-overlay" style="left: 210px; top: 200px; width: 70px; height: 70px;"></div>
-        <div class="btn-overlay" style="left: 320px; top: 200px; width: 70px; height: 70px;"></div>
-        
-        <!-- INVISIBLE BUTTON MAP -->
-        <map name="buttons">
-            <area shape="rect" coords="100,200,170,270" data-action="prev">
-            <area shape="rect" coords="210,200,280,270" data-action="play">
-            <area shape="rect" coords="320,200,390,270" data-action="next">
-        </map>
-    </div>
+    <!-- Your Image with Custom Coordinates -->
+    <img id="boombox" src="boombox.png" usemap="#buttons">
     
-    <div id="status">✅ Green boxes now cover all 3 buttons</div>
+    <!-- YOUR PERFECT BUTTON MAPPING -->
+    <map name="buttons">
+        <area shape="rect" coords="419,507,389,480" data-action="prev" alt="Previous">
+        <area shape="rect" coords="452,507,424,479" data-action="play" alt="Play/Pause">
+        <area shape="rect" coords="488,506,459,480" data-action="next" alt="Next">
+    </map>
+    
+    <div id="status">✅ Buttons mapped! Click to test</div>
 
     <script>
-    // 1. YOUTUBE PLAYER
-    let player;
+    // 1. YouTube Player Setup
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
+    let player;
     window.onYouTubeIframeAPIReady = function() {
         player = new YT.Player('player', {
             height: '0',
             width: '0',
-            videoId: 'dQw4w9WgXcQ',
+            videoId: 'dQw4w9WgXcQ', // Test video
             playerVars: {
                 autoplay: 0,
                 controls: 0,
@@ -73,29 +60,30 @@
             events: {
                 'onReady': function(e) {
                     e.target.setVolume(80);
+                    document.getElementById('status').textContent = "🔥 Ready! Click buttons:";
                 }
             }
         });
     };
 
-    // 2. BUTTON CONTROLS
-    document.querySelector('[data-action="play"]').addEventListener('click', function() {
+    // 2. Button Actions
+    document.querySelector('[data-action="play"]').onclick = function() {
         if (player.getPlayerState() === 1) {
             player.pauseVideo();
-            document.getElementById('status').textContent = "⏸ Paused - Click center to play";
+            document.getElementById('status').textContent = "⏸ Paused";
         } else {
             player.playVideo();
-            document.getElementById('status').textContent = "▶️ Playing - Click center to pause";
+            document.getElementById('status').textContent = "▶️ Playing";
         }
-    });
-    
-    document.querySelector('[data-action="prev"]').addEventListener('click', function() {
-        document.getElementById('status').textContent = "⏮️ Previous track pressed";
-    });
-    
-    document.querySelector('[data-action="next"]').addEventListener('click', function() {
-        document.getElementById('status').textContent = "⏭️ Next track pressed";
-    });
+    };
+
+    document.querySelector('[data-action="prev"]').onclick = function() {
+        document.getElementById('status').textContent = "⏮️ Previous pressed";
+    };
+
+    document.querySelector('[data-action="next"]').onclick = function() {
+        document.getElementById('status').textContent = "⏭️ Next pressed";
+    };
     </script>
 </body>
 </html>
