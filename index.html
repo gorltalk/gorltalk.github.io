@@ -20,8 +20,6 @@
         #boombox {
             width: 100%;
             cursor: pointer;
-            border-radius: 10px;
-            box-shadow: 0 0 20px #00ffff;
         }
         .status {
             color: cyan;
@@ -34,30 +32,31 @@
     <div class="boombox-container">
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- PERFECT COORDINATES FOR YOUR IMAGE -->
+        <!-- PRECISE COORDINATES FOR YOUR TRIANGULAR BUTTONS -->
         <map name="buttons">
-            <!-- Previous Track (Left Triangle) -->
-            <area shape="rect" coords="85,310,135,360" data-action="prev" alt="Previous">
-            <!-- Play (Middle Triangle) -->
-            <area shape="rect" coords="160,310,210,360" data-action="play" alt="Play">
-            <!-- Pause (Two Bars) -->
-            <area shape="rect" coords="235,310,285,360" data-action="pause" alt="Pause">
-            <!-- Next Track (Right Triangle) -->
-            <area shape="rect" coords="310,310,360,360" data-action="next" alt="Next">
+            <!-- LEFT TRIANGLE (Previous Track) -->
+            <area shape="rect" coords="100,300,170,370" data-action="prev" alt="Previous" title="Previous Track">
+            
+            <!-- CENTER TRIANGLE (Play/Pause) -->
+            <area shape="rect" coords="200,300,270,370" data-action="play" alt="Play/Pause" title="Play/Pause">
+            
+            <!-- RIGHT TRIANGLE (Next Track) -->
+            <area shape="rect" coords="300,300,370,370" data-action="next" alt="Next" title="Next Track">
         </map>
         
         <div class="status">Click any button to start</div>
     </div>
 
     <script>
-    // Cool 80s Playlist
+    // 80s/90s Playlist
     const playlist = [
-        'dQw4w9WgXcQ', // Never Gonna Give You Up
-        'JGhoLcsr8GA',  // Thriller
-        '9bZkp7q19f0'   // Gangnam Style
+        'dQw4w9WgXcQ', // Rick Astley
+        'JGhoLcsr8GA', // Michael Jackson
+        '9bZkp7q19f0'  // PSY
     ];
     let currentTrack = 0;
     let player;
+    let isPlaying = false;
 
     // Load YouTube Player
     const tag = document.createElement('script');
@@ -77,50 +76,37 @@
             events: {
                 onReady: (e) => {
                     e.target.setVolume(80);
-                    document.querySelector('.status').textContent = "Ready to play!";
-                },
-                onStateChange: (e) => {
-                    if (e.data === YT.PlayerState.ENDED) nextSong();
+                    updateStatus("Ready! Click center button to play");
                 }
             }
         });
     };
 
     // Player Controls
-    function nextSong() {
-        currentTrack = (currentTrack + 1) % playlist.length;
-        player.loadVideoById(playlist[currentTrack]);
-        updateStatus("Playing: Track " + (currentTrack + 1));
+    function togglePlayPause() {
+        if (isPlaying) {
+            player.pauseVideo();
+            updateStatus("⏸ Paused");
+        } else {
+            player.playVideo();
+            updateStatus("▶️ Playing: Track " + (currentTrack + 1));
+        }
+        isPlaying = !isPlaying;
     }
 
-    function prevSong() {
+    function nextTrack() {
+        currentTrack = (currentTrack + 1) % playlist.length;
+        player.loadVideoById(playlist[currentTrack]);
+        if (isPlaying) player.playVideo();
+        updateStatus("⏭️ Track " + (currentTrack + 1));
+    }
+
+    function prevTrack() {
         currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
-        updateStatus("Playing: Track " + (currentTrack + 1));
+        if (isPlaying) player.playVideo();
+        updateStatus("⏮️ Track " + (currentTrack + 1));
     }
 
     function updateStatus(text) {
-        document.querySelector('.status').textContent = text;
-    }
-
-    // Button Actions
-    document.querySelector('[data-action="play"]').addEventListener('click', () => {
-        player.playVideo();
-        updateStatus("▶️ Playing");
-    });
-    
-    document.querySelector('[data-action="pause"]').addEventListener('click', () => {
-        player.pauseVideo();
-        updateStatus("⏸ Paused");
-    });
-    
-    document.querySelector('[data-action="next"]').addEventListener('click', nextSong);
-    document.querySelector('[data-action="prev"]').addEventListener('click', prevSong);
-
-    // Mobile Tap Helper
-    document.getElementById('boombox').addEventListener('click', () => {
-        updateStatus("Use the buttons below!");
-    });
-    </script>
-</body>
-</html>
+        document.querySelector('.status').
