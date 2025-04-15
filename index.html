@@ -12,104 +12,93 @@
             align-items: center;
             min-height: 100vh;
             font-family: Arial;
-            overflow-x: hidden;
         }
         #boombox {
-            width: 800px;
-            height: auto;
+            width: 800px; /* Original image size */
             cursor: pointer;
         }
+        /* Visualize buttons (remove later) */
         area {
-            outline: 2px solid red !important;
-            opacity: 0.5;
+            outline: 3px dashed red !important;
         }
     </style>
 </head>
 <body>
+    <!-- Original image - no scaling -->
     <img id="boombox" src="boombox.png" usemap="#buttons">
     
+    <!-- FINAL PERFECT COORDINATES -->
     <map name="buttons">
-        <area shape="rect" coords="210,620,290,700" data-action="prev" alt="Previous">
-        <area shape="rect" coords="400,620,480,700" data-action="play" alt="Play/Pause">
-        <area shape="rect" coords="590,620,670,700" data-action="next" alt="Next">
+        <!-- Left Triangle -->
+        <area shape="rect" coords="210,620,290,700" data-action="prev" 
+              onclick="handleControl('prev')">
+        <!-- Center Triangle -->
+        <area shape="rect" coords="400,620,480,700" data-action="play" 
+              onclick="handleControl('play')">
+        <!-- Right Triangle -->
+        <area shape="rect" coords="590,620,670,700" data-action="next" 
+              onclick="handleControl('next')">
     </map>
 
-    <script>
-    // 1. GLOBAL PLAYER REFERENCE
-    let player;
+    <div id="status" style="color:cyan; margin-top:20px;">Loading player...</div>
 
-    // 2. SAFE YOUTUBE API LOAD
-    function loadYouTubeAPI() {
-      return new Promise((resolve) => {
-        window.onYouTubeIframeAPIReady = resolve;
+    <script>
+    // 1. SIMPLE PLAYER CONTROL
+    let player;
+    
+    function handleControl(action) {
+        if (!player) return;
+        
+        switch(action) {
+            case 'play':
+                if (player.getPlayerState() === 1) {
+                    player.pauseVideo();
+                    document.getElementById('status').textContent = "⏸ Paused";
+                } else {
+                    player.playVideo();
+                    document.getElementById('status').textContent = "▶️ Playing";
+                }
+                break;
+                
+            case 'next':
+                document.getElementById('status').textContent = "⏭️ Next Track";
+                break;
+                
+            case 'prev':
+                document.getElementById('status').textContent = "⏮️ Previous Track";
+                break;
+        }
+    }
+
+    // 2. RELIABLE YOUTUBE LOAD
+    function loadPlayer() {
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         document.head.appendChild(tag);
-      });
-    }
-
-    // 3. INITIALIZE PLAYER
-    async function initPlayer() {
-      try {
-        await loadYouTubeAPI();
         
-        player = new YT.Player('player', {
-          height: '0',
-          width: '0',
-          videoId: 'dQw4w9WgXcQ',
-          playerVars: {
-            origin: window.location.origin,
-            autoplay: 0,
-            controls: 0,
-            modestbranding: 1
-          },
-          events: {
-            'onReady': (e) => {
-              e.target.setVolume(80);
-              setupButtons();
-              console.log('✅ Player ready!');
-            },
-            'onError': (e) => {
-              console.error('Player error:', e.data);
-            }
-          }
-        });
-      } catch (err) {
-        console.error('Failed to load player:', err);
-      }
+        window.onYouTubeIframeAPIReady = function() {
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: 'dQw4w9WgXcQ',
+                playerVars: {
+                    autoplay: 0,
+                    controls: 0,
+                    origin: window.location.href
+                },
+                events: {
+                    'onReady': function(e) {
+                        e.target.setVolume(80);
+                        document.getElementById('status').textContent = "✅ Ready! Click buttons";
+                        console.log("Player fully loaded!");
+                    }
+                }
+            });
+        };
     }
 
-    // 4. BUTTON CONTROLS
-    function setupButtons() {
-      // Play/Pause
-      document.querySelector('[data-action="play"]').addEventListener('click', () => {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-          player.pauseVideo();
-          console.log('⏸ Paused');
-        } else {
-          player.playVideo();
-          console.log('▶️ Playing');
-        }
-      });
-
-      // Next
-      document.querySelector('[data-action="next"]').addEventListener('click', () => {
-        console.log('⏭️ Next track');
-      });
-
-      // Previous
-      document.querySelector('[data-action="prev"]').addEventListener('click', () => {
-        console.log('⏮️ Previous track');
-      });
-    }
-
-    // 5. START EVERYTHING
-    initPlayer();
-
-    // Debug: Force retry if needed
-    setTimeout(() => {
-      if (!window.YT) console.warn('YouTube API not loaded after 5s');
-    }, 5000);
+    // 3. START PLAYER
+    loadPlayer();
     </script>
 </body>
 </html>
