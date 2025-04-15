@@ -3,41 +3,107 @@
 <head>
     <title>Boombox Player</title>
     <style>
-        body { background: #000; text-align: center; padding: 20px; }
-        img { max-width: 100%; cursor: pointer; }
+        body {
+            background: #111;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .boombox-container {
+            width: 80%;
+            max-width: 500px; /* Perfect boombox size */
+        }
+        #boombox-img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,255,255,0.3);
+        }
+        .play-notice {
+            color: cyan;
+            margin-top: 20px;
+            font-family: Arial;
+        }
     </style>
 </head>
 <body>
-    <!-- Replace with your boombox image name -->
-    <img src="boombox.png" usemap="#buttons">
-    
-    <map name="buttons">
-        <!-- Play button coordinates -->
-        <area shape="rect" coords="100,200,150,250" data-action="play">
-        <!-- Pause button coordinates -->
-        <area shape="rect" coords="160,200,210,250" data-action="pause">
-    </map>
+    <div class="boombox-container">
+        <!-- Replace src with YOUR image filename -->
+        <img id="boombox-img" src="boombox.png" usemap="#boombox-map">
+        
+        <!-- BUTTON MAP (adjust coords to match your image) -->
+        <map name="boombox-map">
+            <!-- Play Button -->
+            <area shape="rect" coords="30%,60%,40%,70%" data-action="play" alt="Play">
+            <!-- Pause Button -->
+            <area shape="rect" coords="45%,60%,55%,70%" data-action="pause" alt="Pause">
+            <!-- Next Button -->
+            <area shape="rect" coords="60%,60%,70%,70%" data-action="next" alt="Next">
+            <!-- Previous Button -->
+            <area shape="rect" coords="15%,60%,25%,70%" data-action="prev" alt="Previous">
+        </map>
+        
+        <div class="play-notice">Tap the boombox to activate</div>
+    </div>
 
     <script>
-    // Minimal YouTube player
-    const videoId = 'dQw4w9WgXcQ'; // Rick Astley test song
+    // YouTube Playlist
+    const playlist = [
+        'dQw4w9WgXcQ', // Rick Astley
+        '9bZkp7q19f0', // PSY
+        'JGhoLcsr8GA'  // Michael Jackson
+    ];
+    let currentTrack = 0;
+    let player;
+
+    // Load YouTube API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.body.appendChild(tag);
 
-    let player;
+    // Player Setup
     window.onYouTubeIframeAPIReady = () => {
         player = new YT.Player('player', {
             height: '0',
             width: '0',
-            videoId: videoId,
-            playerVars: { autoplay: 0, controls: 0 }
+            videoId: playlist[currentTrack],
+            playerVars: {
+                autoplay: 0,
+                controls: 0,
+                modestbranding: 1
+            },
+            events: {
+                onReady: (e) => e.target.setVolume(70),
+                onStateChange: (e) => {
+                    if (e.data === YT.PlayerState.ENDED) nextTrack();
+                }
+            }
         });
     };
 
-    // Button controls
-    document.querySelector('[data-action="play"]').onclick = () => player.playVideo();
-    document.querySelector('[data-action="pause"]').onclick = () => player.pauseVideo();
+    // Control Functions
+    function nextTrack() {
+        currentTrack = (currentTrack + 1) % playlist.length;
+        player.loadVideoById(playlist[currentTrack]);
+    }
+
+    function prevTrack() {
+        currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
+        player.loadVideoById(playlist[currentTrack]);
+    }
+
+    // Button Click Handlers
+    document.querySelector('[data-action="play"]').addEventListener('click', () => player.playVideo());
+    document.querySelector('[data-action="pause"]').addEventListener('click', () => player.pauseVideo());
+    document.querySelector('[data-action="next"]').addEventListener('click', nextTrack);
+    document.querySelector('[data-action="prev"]').addEventListener('click', prevTrack);
+
+    // Mobile Tap Handler
+    document.getElementById('boombox-img').addEventListener('click', () => {
+        document.querySelector('.play-notice').textContent = "Use the buttons!";
+    });
     </script>
 </body>
 </html>
