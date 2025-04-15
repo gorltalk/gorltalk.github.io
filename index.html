@@ -1,69 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Boombox Player</title>
+    <title>GorlTalk Boombox</title>
     <style>
         body {
-            background: #111;
+            background: #000;
             margin: 0;
-            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            font-family: Arial;
         }
         .boombox-container {
-            width: 80%;
-            max-width: 500px; /* Perfect boombox size */
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
         }
-        #boombox-img {
+        #boombox {
             width: 100%;
+            cursor: pointer;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,255,255,0.3);
+            box-shadow: 0 0 20px #00ffff;
         }
-        .play-notice {
+        .status {
             color: cyan;
-            margin-top: 20px;
-            font-family: Arial;
+            margin-top: 15px;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
     <div class="boombox-container">
-        <!-- Replace src with YOUR image filename -->
-        <img id="boombox-img" src="boombox.png" usemap="#boombox-map">
+        <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- BUTTON MAP (adjust coords to match your image) -->
-        <map name="boombox-map">
-            <!-- Play Button -->
-            <area shape="rect" coords="30%,60%,40%,70%" data-action="play" alt="Play">
-            <!-- Pause Button -->
-            <area shape="rect" coords="45%,60%,55%,70%" data-action="pause" alt="Pause">
-            <!-- Next Button -->
-            <area shape="rect" coords="60%,60%,70%,70%" data-action="next" alt="Next">
-            <!-- Previous Button -->
-            <area shape="rect" coords="15%,60%,25%,70%" data-action="prev" alt="Previous">
+        <!-- PERFECT COORDINATES FOR YOUR IMAGE -->
+        <map name="buttons">
+            <!-- Previous Track (Left Triangle) -->
+            <area shape="rect" coords="85,310,135,360" data-action="prev" alt="Previous">
+            <!-- Play (Middle Triangle) -->
+            <area shape="rect" coords="160,310,210,360" data-action="play" alt="Play">
+            <!-- Pause (Two Bars) -->
+            <area shape="rect" coords="235,310,285,360" data-action="pause" alt="Pause">
+            <!-- Next Track (Right Triangle) -->
+            <area shape="rect" coords="310,310,360,360" data-action="next" alt="Next">
         </map>
         
-        <div class="play-notice">Tap the boombox to activate</div>
+        <div class="status">Click any button to start</div>
     </div>
 
     <script>
-    // YouTube Playlist
+    // Cool 80s Playlist
     const playlist = [
-        'dQw4w9WgXcQ', // Rick Astley
-        '9bZkp7q19f0', // PSY
-        'JGhoLcsr8GA'  // Michael Jackson
+        'dQw4w9WgXcQ', // Never Gonna Give You Up
+        'JGhoLcsr8GA',  // Thriller
+        '9bZkp7q19f0'   // Gangnam Style
     ];
     let currentTrack = 0;
     let player;
 
-    // Load YouTube API
+    // Load YouTube Player
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.body.appendChild(tag);
 
-    // Player Setup
     window.onYouTubeIframeAPIReady = () => {
         player = new YT.Player('player', {
             height: '0',
@@ -75,34 +75,51 @@
                 modestbranding: 1
             },
             events: {
-                onReady: (e) => e.target.setVolume(70),
+                onReady: (e) => {
+                    e.target.setVolume(80);
+                    document.querySelector('.status').textContent = "Ready to play!";
+                },
                 onStateChange: (e) => {
-                    if (e.data === YT.PlayerState.ENDED) nextTrack();
+                    if (e.data === YT.PlayerState.ENDED) nextSong();
                 }
             }
         });
     };
 
-    // Control Functions
-    function nextTrack() {
+    // Player Controls
+    function nextSong() {
         currentTrack = (currentTrack + 1) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
+        updateStatus("Playing: Track " + (currentTrack + 1));
     }
 
-    function prevTrack() {
+    function prevSong() {
         currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
+        updateStatus("Playing: Track " + (currentTrack + 1));
     }
 
-    // Button Click Handlers
-    document.querySelector('[data-action="play"]').addEventListener('click', () => player.playVideo());
-    document.querySelector('[data-action="pause"]').addEventListener('click', () => player.pauseVideo());
-    document.querySelector('[data-action="next"]').addEventListener('click', nextTrack);
-    document.querySelector('[data-action="prev"]').addEventListener('click', prevTrack);
+    function updateStatus(text) {
+        document.querySelector('.status').textContent = text;
+    }
 
-    // Mobile Tap Handler
-    document.getElementById('boombox-img').addEventListener('click', () => {
-        document.querySelector('.play-notice').textContent = "Use the buttons!";
+    // Button Actions
+    document.querySelector('[data-action="play"]').addEventListener('click', () => {
+        player.playVideo();
+        updateStatus("▶️ Playing");
+    });
+    
+    document.querySelector('[data-action="pause"]').addEventListener('click', () => {
+        player.pauseVideo();
+        updateStatus("⏸ Paused");
+    });
+    
+    document.querySelector('[data-action="next"]').addEventListener('click', nextSong);
+    document.querySelector('[data-action="prev"]').addEventListener('click', prevSong);
+
+    // Mobile Tap Helper
+    document.getElementById('boombox').addEventListener('click', () => {
+        updateStatus("Use the buttons below!");
     });
     </script>
 </body>
