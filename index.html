@@ -19,9 +19,11 @@
             margin: 0 auto;
             cursor: pointer;
         }
+        /* VISIBLE BUTTON ZONES */
         area {
             outline: 3px solid lime !important;
             opacity: 0.7;
+            display: block !important;
         }
         #status {
             color: cyan;
@@ -34,89 +36,68 @@
     </style>
 </head>
 <body>
+    <!-- Your boombox image -->
     <img id="boombox" src="boombox.png" usemap="#buttons">
     
+    <!-- CORRECT BUTTON MAPPING (using your coordinates) -->
     <map name="buttons">
-        <area shape="rect" coords="389,480,419,507" data-action="prev">
-        <area shape="rect" coords="424,479,452,507" data-action="play">
-        <area shape="rect" coords="459,480,488,506" data-action="next">
+        <area shape="rect" coords="389,480,419,507" data-action="prev" alt="Previous">
+        <area shape="rect" coords="424,479,452,507" data-action="play" alt="Play/Pause">
+        <area shape="rect" coords="459,480,488,506" data-action="next" alt="Next">
     </map>
     
-    <div id="status">⚠️ Click any button to activate player</div>
-    <div id="player"></div> <!-- YouTube player container -->
+    <div id="status">🔵 Click any button to start</div>
+    <div id="player"></div> <!-- Hidden YouTube player -->
 
     <script>
-    // 1. GLOBAL PLAYER REFERENCE
+    // 1. PLAYER SETUP
     let player;
-    let playerReady = false;
-    
-    // 2. LOAD YOUTUBE API WITH FALLBACK
-    function loadYouTubeAPI() {
-        return new Promise((resolve) => {
-            // Create backup callback in case API fails
-            window.onYouTubeIframeAPIFallback = resolve;
-            
-            const tag = document.createElement('script');
-            tag.src = "https://www.youtube.com/iframe_api";
-            tag.onerror = () => {
-                console.warn("YouTube API failed, using fallback");
-                resolve();
-            };
-            document.head.appendChild(tag);
-        });
-    }
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
 
-    // 3. INITIALIZE PLAYER
-    async function initPlayer() {
-        try {
-            await loadYouTubeAPI();
-            
-            // If API loaded successfully
-            if (window.YT) {
-                player = new YT.Player('player', {
-                    height: '0',
-                    width: '0',
-                    videoId: 'dQw4w9WgXcQ',
-                    playerVars: {
-                        origin: window.location.href,
-                        autoplay: 0,
-                        controls: 0
-                    },
-                    events: {
-                        'onReady': (e) => {
-                            e.target.setVolume(80);
-                            playerReady = true;
-                            updateStatus("✅ Player ready! Click buttons");
-                            setupButtons();
-                        }
-                    }
-                });
-            } else {
-                updateStatus("⚠️ Enable third-party scripts for audio");
+    // 2. INITIALIZE PLAYER
+    window.onYouTubeIframeAPIReady = function() {
+        player = new YT.Player('player', {
+            height: '0',
+            width: '0',
+            videoId: 'dQw4w9WgXcQ', // Test video
+            playerVars: {
+                origin: window.location.href,
+                autoplay: 0,
+                controls: 0
+            },
+            events: {
+                'onReady': function(e) {
+                    e.target.setVolume(80);
+                    document.getElementById('status').textContent = "✅ Ready! Click center button";
+                    setupButtons();
+                }
             }
-        } catch (err) {
-            console.error("Player init failed:", err);
-            updateStatus("❌ Player error - check console");
-        }
-    }
+        });
+    };
 
-    // 4. BUTTON CONTROLS
+    // 3. BUTTON CONTROLS
     function setupButtons() {
-        document.querySelector('[data-action="play"]').onclick = () => {
-            if (playerReady) {
-                player.getPlayerState() === YT.PlayerState.PLAYING 
-                    ? player.pauseVideo() 
-                    : player.playVideo();
+        // Play/Pause
+        document.querySelector('[data-action="play"]').onclick = function() {
+            if (player.getPlayerState() === 1) {
+                player.pauseVideo();
+                document.getElementById('status').textContent = "⏸ Paused";
+            } else {
+                player.playVideo();
+                document.getElementById('status').textContent = "▶️ Playing";
             }
         };
+        
+        // Navigation (add your playlist logic later)
+        document.querySelector('[data-action="prev"]').onclick = function() {
+            document.getElementById('status').textContent = "⏮️ Previous pressed";
+        };
+        document.querySelector('[data-action="next"]').onclick = function() {
+            document.getElementById('status').textContent = "⏭️ Next pressed";
+        };
     }
-
-    function updateStatus(text) {
-        document.getElementById('status').textContent = text;
-    }
-
-    // 5. START INITIALIZATION
-    document.addEventListener('DOMContentLoaded', initPlayer);
     </script>
 </body>
 </html>
