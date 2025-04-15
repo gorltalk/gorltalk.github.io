@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Boombox Player</title>
+    <style>
+        body { background: #000; text-align: center; padding: 20px; }
+        img { max-width: 100%; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <!-- Replace with your boombox image name -->
+    <img src="boombox.png" usemap="#buttons">
+    
+    <map name="buttons">
+        <!-- Play button coordinates -->
+        <area shape="rect" coords="100,200,150,250" data-action="play">
+        <!-- Pause button coordinates -->
+        <area shape="rect" coords="160,200,210,250" data-action="pause">
+    </map>
+
+    <script>
+    // Minimal YouTube player
+    const videoId = 'dQw4w9WgXcQ'; // Rick Astley test song
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(tag);
+
+    let player;
+    window.onYouTubeIframeAPIReady = () => {
+        player = new YT.Player('player', {
+            height: '0',
+            width: '0',
+            videoId: videoId,
+            playerVars: { autoplay: 0, controls: 0 }
+        });
+    };
+
+    // Button controls
+    document.querySelector('[data-action="play"]').onclick = () => player.playVideo();
+    document.querySelector('[data-action="pause"]').onclick = () => player.pauseVideo();
+    </script>
+</body>
+</html>
