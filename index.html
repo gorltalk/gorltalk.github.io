@@ -11,15 +11,16 @@
             text-align: center;
         }
         #boombox {
-            width: 800px; 
+            width: 500px; /* Matches your smaller image */
             height: auto;
             display: block;
             margin: 0 auto;
             cursor: pointer;
-            border: 2px solid cyan; /* Debug border */
+            outline: 2px solid cyan; /* Debug border */
         }
+        /* VISIBLE BUTTON ZONES */
         area {
-            outline: 3px solid lime !important; /* Green click zones */
+            outline: 3px solid lime !important;
             opacity: 0.7;
         }
         #status {
@@ -30,55 +31,38 @@
     </style>
 </head>
 <body>
-    <!-- IMAGE CONTAINER -->
-    <div style="overflow: hidden; max-width: 800px; margin: 0 auto;">
-        <img id="boombox" src="boombox.png" usemap="#buttons" 
-             onerror="alert('Image failed to load! Check filename.')">
-    </div>
+    <!-- Smaller boombox image -->
+    <img id="boombox" src="boombox.png" usemap="#buttons">
     
-    <!-- ADJUSTED COORDINATES -->
+    <!-- NEW PRECISE BUTTON MAPPING -->
     <map name="buttons">
-        <area shape="rect" coords="200,600,300,720" data-action="prev" 
+        <!-- Left Triangle Button -->
+        <area shape="rect" coords="70,180,130,240" 
+              data-action="prev" 
               onclick="console.log('PREV CLICKED')">
-        <area shape="rect" coords="400,600,500,720" data-action="play" 
+        
+        <!-- Center Triangle Button -->
+        <area shape="rect" coords="190,180,250,240" 
+              data-action="play" 
               onclick="console.log('PLAY CLICKED')">
-        <area shape="rect" coords="600,600,700,720" data-action="next" 
+        
+        <!-- Right Triangle Button -->
+        <area shape="rect" coords="310,180,370,240" 
+              data-action="next" 
               onclick="console.log('NEXT CLICKED')">
     </map>
     
-    <div id="status">🔄 Loading player...</div>
+    <div id="status">🔵 Buttons should now cover the 3 white triangles</div>
 
     <script>
-    // 1. Verify image load
-    document.getElementById('boombox').onload = function() {
-        console.log("Image loaded successfully!");
-        document.getElementById('status').textContent = "✅ Image loaded - initializing player...";
-    };
-
-    // 2. YouTube Player
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-
-    window.onYouTubeIframeAPIReady = function() {
-        new YT.Player('player', {
-            height: '0',
-            width: '0',
-            videoId: 'dQw4w9WgXcQ',
-            events: {
-                'onReady': function(e) {
-                    e.target.setVolume(80);
-                    document.getElementById('status').textContent = "READY! Click buttons → check console";
-                    console.log("Player initialized!");
-                    
-                    // Connect buttons
-                    document.querySelector('[data-action="play"]').onclick = function() {
-                        e.target.getPlayerState() === 1 ? e.target.pauseVideo() : e.target.playVideo();
-                    };
-                }
-            }
+    // Just button testing - no YouTube yet
+    document.querySelectorAll('area').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.getAttribute('data-action');
+            document.getElementById('status').textContent = `✅ ${action.toUpperCase()} button worked!`;
+            console.log(action.toUpperCase(), 'button clicked');
         });
-    };
+    });
     </script>
 </body>
 </html>
