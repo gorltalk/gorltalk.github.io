@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>GorlTalk Boombox</title>
+    <meta name="referrer" content="no-referrer">
     <style>
         body {
             background: #000;
@@ -32,23 +33,17 @@
     <div class="boombox-container">
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- PRECISE COORDINATES FOR YOUR TRIANGULAR BUTTONS -->
         <map name="buttons">
-            <!-- LEFT TRIANGLE (Previous Track) -->
-            <area shape="rect" coords="100,300,170,370" data-action="prev" alt="Previous" title="Previous Track">
-            
-            <!-- CENTER TRIANGLE (Play/Pause) -->
-            <area shape="rect" coords="200,300,270,370" data-action="play" alt="Play/Pause" title="Play/Pause">
-            
-            <!-- RIGHT TRIANGLE (Next Track) -->
-            <area shape="rect" coords="300,300,370,370" data-action="next" alt="Next" title="Next Track">
+            <area shape="rect" coords="100,300,170,370" data-action="prev" alt="Previous">
+            <area shape="rect" coords="200,300,270,370" data-action="play" alt="Play/Pause">
+            <area shape="rect" coords="300,300,370,370" data-action="next" alt="Next">
         </map>
         
         <div class="status">Click any button to start</div>
     </div>
 
     <script>
-    // 80s/90s Playlist
+    // 1. YouTube Player Setup
     const playlist = [
         'dQw4w9WgXcQ', // Rick Astley
         'JGhoLcsr8GA', // Michael Jackson
@@ -58,31 +53,37 @@
     let player;
     let isPlaying = false;
 
-    // Load YouTube Player
+    // 2. Load YouTube API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
-    document.body.appendChild(tag);
+    document.head.appendChild(tag);
 
-    window.onYouTubeIframeAPIReady = () => {
+    // 3. Player Initialization
+    window.onYouTubeIframeAPIReady = function() {
         player = new YT.Player('player', {
             height: '0',
             width: '0',
             videoId: playlist[currentTrack],
             playerVars: {
+                origin: window.location.origin,
                 autoplay: 0,
                 controls: 0,
                 modestbranding: 1
             },
             events: {
-                onReady: (e) => {
+                onReady: function(e) {
                     e.target.setVolume(80);
-                    updateStatus("Ready! Click center button to play");
+                    enableButtons();
+                    updateStatus("Ready to play!");
+                },
+                onStateChange: function(e) {
+                    if (e.data === YT.PlayerState.ENDED) nextTrack();
                 }
             }
         });
     };
 
-    // Player Controls
+    // 4. Player Controls
     function togglePlayPause() {
         if (isPlaying) {
             player.pauseVideo();
@@ -98,15 +99,25 @@
         currentTrack = (currentTrack + 1) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
         if (isPlaying) player.playVideo();
-        updateStatus("⏭️ Track " + (currentTrack + 1));
+        updateStatus("Now: Track " + (currentTrack + 1));
     }
 
     function prevTrack() {
         currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
         if (isPlaying) player.playVideo();
-        updateStatus("⏮️ Track " + (currentTrack + 1));
+        updateStatus("Now: Track " + (currentTrack + 1));
     }
 
     function updateStatus(text) {
-        document.querySelector('.status').
+        document.querySelector('.status').textContent = text;
+    }
+
+    function enableButtons() {
+        document.querySelector('[data-action="play"]').addEventListener('click', togglePlayPause);
+        document.querySelector('[data-action="next"]').addEventListener('click', nextTrack);
+        document.querySelector('[data-action="prev"]').addEventListener('click', prevTrack);
+    }
+    </script>
+</body>
+</html>
