@@ -23,6 +23,7 @@
             display: block;
             cursor: pointer;
         }
+        /* Visual button overlays (optional for debugging) */
         .btn-overlay {
             position: absolute;
             border: 2px solid lime;
@@ -34,29 +35,31 @@
             color: cyan;
             margin-top: 15px;
             font-size: 1em;
+            min-height: 2em;
         }
     </style>
 </head>
 <body>
     <div id="boombox-container">
-        <!-- Your 430x330 boombox image -->
+        <!-- Your boombox image -->
         <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons">
         
-        <!-- Visual overlays for debugging -->
-        <div class="btn-overlay" style="left: 138px; top: 176px; width: 45px; height: 37px;"></div>
-        <div class="btn-overlay" style="left: 149px; top: 176px; width: 41px; height: 37px;"></div>
-        <div class="btn-overlay" style="left: 158px; top: 175px; width: 44px; height: 40px;"></div>
+        <!-- Visual overlays matching your latest coordinates -->
+        <div class="btn-overlay" style="left: 138px; top: 175px; width: 43px; height: 37px;"></div>
+        <div class="btn-overlay" style="left: 149px; top: 175px; width: 39px; height: 40px;"></div>
+        <div class="btn-overlay" style="left: 158px; top: 175px; width: 40px; height: 40px;"></div>
         
-        <!-- Correctly scaled image map -->
+        <!-- Image map with your latest coordinates -->
         <map name="buttons">
-            <area shape="rect" coords="138,176,183,213" data-action="prev" href="javascript:void(0)" alt="Previous">
-            <area shape="rect" coords="149,176,190,213" data-action="play" href="javascript:void(0)" alt="Play">
-            <area shape="rect" coords="158,175,202,215" data-action="next" href="javascript:void(0)" alt="Next">
+            <area shape="rect" coords="138,175,181,212" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="149,175,188,215" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="158,175,198,215" data-action="next" href="javascript:void(0)" alt="Next">
         </map>
     </div>
     
     <div id="status">🔇 Boombox ready - Press PLAY</div>
     
+    <!-- Hidden YouTube player -->
     <div id="player"></div>
 
     <script>
@@ -64,6 +67,7 @@
         let playerReady = false;
         let currentTrackIndex = 0;
         
+        // Temporary playlist
         const playlist = [
             { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' },
             { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' },
