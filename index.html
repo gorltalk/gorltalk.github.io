@@ -2,58 +2,22 @@
 <html>
 <head>
     <title>GorlTalk Radio Boombox</title>
-    <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-        
-        body {
-            background: #000;
-            margin: 0;
-            padding: 20px;
+        body { 
+            background: #000; 
             text-align: center;
-            font-family: 'Share Tech Mono', monospace;
-        }
-        #boombox-container {
-            position: relative;
-            display: inline-block;
-            margin: 0 auto;
-        }
-        #boombox {
-            width: auto;
-            height: auto;
-            max-width: 100%;
-            display: block;
-            cursor: pointer;
-        }
-        #status {
-            color: #0ff;
-            margin-top: 20px;
-            font-size: 1.2em;
-            font-style: italic;
-            min-height: 40px;
+            font-family: Arial;
         }
     </style>
 </head>
 <body>
-    <div id="boombox-container">
-        <!-- Updated image path -->
-        <img id="boombox" src="boombox.png" usemap="#buttons" alt="Boombox">
-        
-        <map name="buttons">
-            <area shape="rect" coords="694,585,735,621" data-action="prev" href="javascript:void(0)" alt="Previous">
-            <area shape="rect" coords="741,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
-            <area shape="rect" coords="793,583,832,622" data-action="next" href="javascript:void(0)" alt="Next">
-        </map>
-    </div>
-
-    <div id="status">▶️ PRESS TO START</div>
-
-    <div id="player"></div>
-
-    <!-- Rest of your JavaScript remains exactly the same -->
+    <!-- Using relative path (best practice) -->
+    <img src="boombox.png" alt="Boombox" style="max-width:100%">
+    
+    <!-- Rest of your player code remains unchanged -->
     <script>
-        // [Your existing JavaScript code]
+        // Your existing JavaScript
     </script>
 </body>
 </html>
