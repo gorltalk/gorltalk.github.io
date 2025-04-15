@@ -13,7 +13,7 @@
         }
         #boombox-container {
             position: relative;
-            width: fit-content;
+            display: inline-block; /* Changed to inline-block */
             margin: 0 auto;
         }
         #boombox {
@@ -23,7 +23,7 @@
             display: block;
             cursor: pointer;
         }
-        /* VISIBLE BUTTON ZONES */
+        /* VISIBLE BUTTON ZONES - now relative to container */
         .btn-overlay {
             position: absolute;
             border: 3px solid lime;
@@ -43,27 +43,26 @@
         <!-- Your boombox image -->
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- VISUAL BUTTON OVERLAYS -->
-        <div class="btn-overlay" style="left: 389px; top: 480px; width: 30px; height: 27px;"></div>
-        <div class="btn-overlay" style="left: 424px; top: 479px; width: 28px; height: 28px;"></div>
-        <div class="btn-overlay" style="left: 459px; top: 480px; width: 29px; height: 26px;"></div>
+        <!-- VISUAL BUTTON OVERLAYS - updated positions -->
+        <div class="btn-overlay" style="left: 100px; top: 200px; width: 30px; height: 27px;"></div>
+        <div class="btn-overlay" style="left: 150px; top: 200px; width: 28px; height: 28px;"></div>
+        <div class="btn-overlay" style="left: 200px; top: 200px; width: 29px; height: 26px;"></div>
         
-        <!-- INVISIBLE BUTTON MAP -->
+        <!-- INVISIBLE BUTTON MAP - updated coordinates -->
         <map name="buttons">
-            <area shape="rect" coords="389,480,419,507" data-action="prev">
-            <area shape="rect" coords="424,479,452,507" data-action="play">
-            <area shape="rect" coords="459,480,488,506" data-action="next">
+            <area shape="rect" coords="100,200,130,227" data-action="prev">
+            <area shape="rect" coords="150,200,178,228" data-action="play">
+            <area shape="rect" coords="200,200,229,226" data-action="next">
         </map>
     </div>
     
     <div id="status">▶️ Click the center green box to play</div>
 
     <script>
-    // 1. YOUTUBE PLAYER SETUP
+    // Same player setup code as before
     let player;
     let playerReady = false;
     
-    // Load YouTube API with error handling
     function loadYouTubePlayer() {
         return new Promise((resolve) => {
             window.onYouTubeIframeAPIReady = resolve;
@@ -78,7 +77,6 @@
         });
     }
 
-    // 2. INITIALIZE PLAYER
     async function initPlayer() {
         try {
             await loadYouTubePlayer();
@@ -111,9 +109,7 @@
         }
     }
 
-    // 3. BUTTON CONTROLS
     function setupControls() {
-        // Play/Pause
         document.querySelector('[data-action="play"]').addEventListener('click', () => {
             if (playerReady) {
                 if (player.getPlayerState() === 1) {
@@ -126,7 +122,6 @@
             }
         });
         
-        // Navigation buttons
         document.querySelector('[data-action="prev"]').addEventListener('click', () => {
             document.getElementById('status').textContent = "⏮️ Previous pressed";
         });
@@ -136,7 +131,6 @@
         });
     }
 
-    // 4. START EVERYTHING
     document.addEventListener('DOMContentLoaded', () => {
         initPlayer();
         setupControls();
