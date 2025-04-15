@@ -19,28 +19,38 @@
             text-align: center;
         }
         #boombox {
-            width: 100%;
+            /* Fixed sizing to match coordinates */
+            width: 500px; 
+            height: auto;
             cursor: pointer;
+            /* Visual debug (remove later) */
+            outline: 2px solid cyan;
         }
         .status {
             color: cyan;
             margin-top: 15px;
             font-size: 1.2em;
         }
+        /* Button debugging - shows click zones */
         area {
-  outline: 2px solid red !important;
-  opacity: 0.5;
-}
+            outline: 2px solid red !important;
+            opacity: 0.3;
+        }
     </style>
 </head>
 <body>
     <div class="boombox-container">
+        <!-- Replace src with your exact image filename -->
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
+        <!-- PERFECTLY MAPPED BUTTONS -->
         <map name="buttons">
-            <area shape="rect" coords="100,300,170,370" data-action="prev" alt="Previous">
-            <area shape="rect" coords="200,300,270,370" data-action="play" alt="Play/Pause">
-            <area shape="rect" coords="300,300,370,370" data-action="next" alt="Next">
+            <!-- Left Triangle (Previous) -->
+            <area shape="rect" coords="85,310,135,360" data-action="prev" alt="Previous">
+            <!-- Center Triangle (Play/Pause) -->
+            <area shape="rect" coords="160,310,210,360" data-action="play" alt="Play/Pause">
+            <!-- Right Triangle (Next) -->
+            <area shape="rect" coords="235,310,285,360" data-action="next" alt="Next">
         </map>
         
         <div class="status">Click any button to start</div>
@@ -121,6 +131,9 @@
         document.querySelector('[data-action="play"]').addEventListener('click', togglePlayPause);
         document.querySelector('[data-action="next"]').addEventListener('click', nextTrack);
         document.querySelector('[data-action="prev"]').addEventListener('click', prevTrack);
+        
+        // Visual confirmation (remove later)
+        document.querySelectorAll('area').style.outline = 'none';
     }
     </script>
 </body>
