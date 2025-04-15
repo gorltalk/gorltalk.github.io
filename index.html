@@ -13,7 +13,7 @@
         }
         #boombox-container {
             position: relative;
-            display: inline-block; /* Changed to inline-block */
+            display: inline-block;
             margin: 0 auto;
         }
         #boombox {
@@ -23,7 +23,7 @@
             display: block;
             cursor: pointer;
         }
-        /* VISIBLE BUTTON ZONES - now relative to container */
+        /* VISIBLE BUTTON ZONES */
         .btn-overlay {
             position: absolute;
             border: 3px solid lime;
@@ -43,23 +43,22 @@
         <!-- Your boombox image -->
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- VISUAL BUTTON OVERLAYS - updated positions -->
-        <div class="btn-overlay" style="left: 387px; top: 324px; width: 21px; height: 22px;"></div>
-        <div class="btn-overlay" style="left: 414px; top: 324px; width: 21px; height: 22px;"></div>
-        <div class="btn-overlay" style="left: 441px; top: 324px; width: 21px; height: 22px;"></div>
+        <!-- VISUAL BUTTON OVERLAYS - updated positions based on your screenshot -->
+        <div class="btn-overlay" style="left: 38%; top: 40%; width: 5%; height: 5%;"></div>
+        <div class="btn-overlay" style="left: 48%; top: 40%; width: 5%; height: 5%;"></div>
+        <div class="btn-overlay" style="left: 58%; top: 40%; width: 5%; height: 5%;"></div>
         
         <!-- INVISIBLE BUTTON MAP - updated coordinates -->
         <map name="buttons">
-            <area shape="rect" coords="100,200,130,227" data-action="prev">
-            <area shape="rect" coords="150,200,178,228" data-action="play">
-            <area shape="rect" coords="200,200,229,226" data-action="next">
+            <area shape="rect" coords="38,40,43,45" data-action="prev" href="javascript:void(0)">
+            <area shape="rect" coords="48,40,53,45" data-action="play" href="javascript:void(0)">
+            <area shape="rect" coords="58,40,63,45" data-action="next" href="javascript:void(0)">
         </map>
     </div>
     
     <div id="status">▶️ Click the center green box to play</div>
 
     <script>
-    // Same player setup code as before
     let player;
     let playerReady = false;
     
@@ -110,24 +109,31 @@
     }
 
     function setupControls() {
-        document.querySelector('[data-action="play"]').addEventListener('click', () => {
-            if (playerReady) {
-                if (player.getPlayerState() === 1) {
-                    player.pauseVideo();
-                    document.getElementById('status').textContent = "⏸ Paused - Click to play";
-                } else {
-                    player.playVideo();
-                    document.getElementById('status').textContent = "▶️ Playing - Click to pause";
+        // Get all area elements
+        const areas = document.querySelectorAll('map[name="buttons"] area');
+        
+        // Add click handlers to each area
+        areas.forEach(area => {
+            area.addEventListener('click', (e) => {
+                e.preventDefault();
+                const action = area.getAttribute('data-action');
+                
+                if (action === 'play') {
+                    if (playerReady) {
+                        if (player.getPlayerState() === 1) {
+                            player.pauseVideo();
+                            document.getElementById('status').textContent = "⏸ Paused - Click to play";
+                        } else {
+                            player.playVideo();
+                            document.getElementById('status').textContent = "▶️ Playing - Click to pause";
+                        }
+                    }
+                } else if (action === 'prev') {
+                    document.getElementById('status').textContent = "⏮️ Previous pressed";
+                } else if (action === 'next') {
+                    document.getElementById('status').textContent = "⏭️ Next pressed";
                 }
-            }
-        });
-        
-        document.querySelector('[data-action="prev"]').addEventListener('click', () => {
-            document.getElementById('status').textContent = "⏮️ Previous pressed";
-        });
-        
-        document.querySelector('[data-action="next"]').addEventListener('click', () => {
-            document.getElementById('status').textContent = "⏭️ Next pressed";
+            });
         });
     }
 
