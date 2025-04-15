@@ -3,6 +3,7 @@
 <head>
     <title>GorlTalk Boombox</title>
     <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             background: #000;
@@ -57,10 +58,22 @@
     </div>
 
     <div id="status">▶️ Press to Start</div>
+    
+    <!-- Hidden YouTube player -->
+    <div id="player"></div>
 
     <script>
         let player;
         let playerReady = false;
+        let currentTrackIndex = 0;
+        
+        // Temporary playlist
+        const playlist = [
+            { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' },
+            { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' },
+            { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You' },
+            { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito' }
+        ];
 
         // Load YouTube API
         function loadYouTubePlayer() {
@@ -76,7 +89,7 @@
             });
         }
 
-        // Initialize player
+        // Initialize player with first track
         async function initPlayer() {
             try {
                 await loadYouTubePlayer();
@@ -84,27 +97,69 @@
                     player = new YT.Player('player', {
                         height: '0',
                         width: '0',
-                        videoId: 'dQw4w9WgXcQ',
+                        videoId: playlist[currentTrackIndex].id,
                         playerVars: {
                             origin: window.location.href,
                             autoplay: 0,
                             controls: 0,
-                            modestbranding: 1
+                            modestbranding: 1,
+                            enablejsapi: 1
                         },
                         events: {
                             'onReady': (e) => {
                                 e.target.setVolume(80);
                                 playerReady = true;
-                                document.getElementById('status').textContent = "✅ Ready! Click center to play";
+                                updateStatus("✅ Ready! Click center to play");
+                            },
+                            'onStateChange': (e) => {
+                                if (e.data === YT.PlayerState.ENDED) {
+                                    playNext();
+                                }
                             }
                         }
                     });
                 } else {
-                    document.getElementById('status').textContent = "⚠️ Enable third-party scripts for audio";
+                    updateStatus("⚠️ Enable third-party scripts for audio");
                 }
             } catch (err) {
                 console.error("Player initialization failed:", err);
-                document.getElementById('status').textContent = "❌ Player error - check console";
+                updateStatus("❌ Player error - check console");
+            }
+        }
+
+        function playPrev() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            updateStatus();
+        }
+
+        function playNext() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            updateStatus();
+        }
+
+        function togglePlay() {
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+            updateStatus();
+        }
+
+        function updateStatus(customMessage) {
+            const status = document.getElementById('status');
+            if (customMessage) {
+                status.textContent = customMessage;
+                return;
+            }
+            
+            const song = playlist[currentTrackIndex];
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                status.innerHTML = `▶️ Playing: <strong>${song.title}</strong>`;
+            } else {
+                status.innerHTML = `⏸ Paused: <strong>${song.title}</strong>`;
             }
         }
 
@@ -113,27 +168,19 @@
             // Previous button
             document.querySelector('area[data-action="prev"]').addEventListener('click', (e) => {
                 e.preventDefault();
-                document.getElementById('status').textContent = "⏮️ Previous pressed";
+                if (playerReady) playPrev();
             });
 
             // Play/Pause button
             document.querySelector('area[data-action="play"]').addEventListener('click', (e) => {
                 e.preventDefault();
-                if (playerReady) {
-                    if (player.getPlayerState() === 1) { // Playing
-                        player.pauseVideo();
-                        document.getElementById('status').textContent = "⏸ Paused - Click to play";
-                    } else { // Paused/Stopped
-                        player.playVideo();
-                        document.getElementById('status').textContent = "▶️ Playing - Click to pause";
-                    }
-                }
+                if (playerReady) togglePlay();
             });
 
             // Next button
             document.querySelector('area[data-action="next"]').addEventListener('click', (e) => {
                 e.preventDefault();
-                document.getElementById('status').textContent = "⏭️ Next pressed";
+                if (playerReady) playNext();
             });
         }
 
