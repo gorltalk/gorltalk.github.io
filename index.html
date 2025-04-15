@@ -11,17 +11,14 @@
             text-align: center;
             font-family: Arial;
         }
-        /* KEY FIX: Display image at ACTUAL size */
         #boombox {
-            width: auto !important;
-            height: auto !important;
+            width: auto;
+            height: auto;
             max-width: 100%;
             display: block;
             margin: 0 auto;
             cursor: pointer;
-            outline: 2px solid cyan; /* Debug border */
         }
-        /* Visible button zones */
         area {
             outline: 3px solid lime !important;
             opacity: 0.7;
@@ -31,66 +28,95 @@
             margin-top: 20px;
             font-size: 1.2em;
         }
+        #player {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- Image displays at ORIGINAL size -->
     <img id="boombox" src="boombox.png" usemap="#buttons">
     
-    <!-- PROPERLY ORDERED COORDINATES -->
     <map name="buttons">
-        <!-- Left Button -->
         <area shape="rect" coords="389,480,419,507" data-action="prev">
-        <!-- Center Button -->
         <area shape="rect" coords="424,479,452,507" data-action="play">
-        <!-- Right Button -->
         <area shape="rect" coords="459,480,488,506" data-action="next">
     </map>
     
-    <div id="status">🔄 Loading player...</div>
+    <div id="status">⚠️ Click any button to activate player</div>
+    <div id="player"></div> <!-- YouTube player container -->
 
     <script>
-    // 1. YouTube Player
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-
+    // 1. GLOBAL PLAYER REFERENCE
     let player;
-    window.onYouTubeIframeAPIReady = function() {
-        player = new YT.Player('player', {
-            height: '0',
-            width: '0',
-            videoId: 'dQw4w9WgXcQ',
-            playerVars: {
-                autoplay: 0,
-                controls: 0,
-                origin: window.location.href
-            },
-            events: {
-                'onReady': function(e) {
-                    e.target.setVolume(80);
-                    document.getElementById('status').textContent = "✅ Ready! Click buttons:";
-                    
-                    // Connect buttons
-                    document.querySelector('[data-action="play"]').onclick = function() {
-                        if (player.getPlayerState() === 1) {
-                            player.pauseVideo();
-                            document.getElementById('status').textContent = "⏸ Paused";
-                        } else {
-                            player.playVideo();
-                            document.getElementById('status').textContent = "▶️ Playing";
-                        }
-                    };
-                    document.querySelector('[data-action="prev"]').onclick = function() {
-                        document.getElementById('status').textContent = "⏮️ Previous pressed";
-                    };
-                    document.querySelector('[data-action="next"]').onclick = function() {
-                        document.getElementById('status').textContent = "⏭️ Next pressed";
-                    };
-                }
-            }
+    let playerReady = false;
+    
+    // 2. LOAD YOUTUBE API WITH FALLBACK
+    function loadYouTubeAPI() {
+        return new Promise((resolve) => {
+            // Create backup callback in case API fails
+            window.onYouTubeIframeAPIFallback = resolve;
+            
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            tag.onerror = () => {
+                console.warn("YouTube API failed, using fallback");
+                resolve();
+            };
+            document.head.appendChild(tag);
         });
-    };
+    }
+
+    // 3. INITIALIZE PLAYER
+    async function initPlayer() {
+        try {
+            await loadYouTubeAPI();
+            
+            // If API loaded successfully
+            if (window.YT) {
+                player = new YT.Player('player', {
+                    height: '0',
+                    width: '0',
+                    videoId: 'dQw4w9WgXcQ',
+                    playerVars: {
+                        origin: window.location.href,
+                        autoplay: 0,
+                        controls: 0
+                    },
+                    events: {
+                        'onReady': (e) => {
+                            e.target.setVolume(80);
+                            playerReady = true;
+                            updateStatus("✅ Player ready! Click buttons");
+                            setupButtons();
+                        }
+                    }
+                });
+            } else {
+                updateStatus("⚠️ Enable third-party scripts for audio");
+            }
+        } catch (err) {
+            console.error("Player init failed:", err);
+            updateStatus("❌ Player error - check console");
+        }
+    }
+
+    // 4. BUTTON CONTROLS
+    function setupButtons() {
+        document.querySelector('[data-action="play"]').onclick = () => {
+            if (playerReady) {
+                player.getPlayerState() === YT.PlayerState.PLAYING 
+                    ? player.pauseVideo() 
+                    : player.playVideo();
+            }
+        };
+    }
+
+    function updateStatus(text) {
+        document.getElementById('status').textContent = text;
+    }
+
+    // 5. START INITIALIZATION
+    document.addEventListener('DOMContentLoaded', initPlayer);
     </script>
 </body>
 </html>
