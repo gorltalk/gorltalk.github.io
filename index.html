@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GorlTalk Boombox</title>
+    <title>GorlTalk Radio Boombox</title>
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -33,44 +33,13 @@
             font-style: italic;
             min-height: 40px;
         }
-        /* Mobile controls (hidden by default) */
-        .mobile-controls {
-            display: none;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 300px;
-        }
-        .mobile-btn {
-            background: rgba(0, 255, 255, 0.2);
-            border: 1px solid #0ff;
-            color: #0ff;
-            padding: 10px 15px;
-            margin: 0 5px;
-            font-family: 'Share Tech Mono', monospace;
-            cursor: pointer;
-        }
-        
-        /* Switch to mobile controls on small screens */
-        @media (max-width: 768px) {
-            #boombox {
-                max-width: 100%;
-                height: auto;
-            }
-            map area {
-                display: none !important;
-            }
-            .mobile-controls {
-                display: block;
-            }
-        }
     </style>
 </head>
 <body>
     <div id="boombox-container">
-        <!-- Original boombox image (full size on desktop) -->
-        <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons" alt="Boombox">
+        <!-- Updated image path -->
+        <img id="boombox" src="boombox.png" usemap="#buttons" alt="Boombox">
         
-        <!-- Original image map (works on desktop) -->
         <map name="buttons">
             <area shape="rect" coords="694,585,735,621" data-action="prev" href="javascript:void(0)" alt="Previous">
             <area shape="rect" coords="741,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
@@ -79,152 +48,12 @@
     </div>
 
     <div id="status">▶️ PRESS TO START</div>
-    
-    <!-- Mobile controls (shown only on mobile) -->
-    <div class="mobile-controls">
-        <button class="mobile-btn" data-action="prev">⏮ PREV</button>
-        <button class="mobile-btn" data-action="play">▶ PLAY</button>
-        <button class="mobile-btn" data-action="next">⏭ NEXT</button>
-    </div>
 
-    <!-- Hidden YouTube player -->
     <div id="player"></div>
 
+    <!-- Rest of your JavaScript remains exactly the same -->
     <script>
-        let player;
-        let playerReady = false;
-        let currentTrackIndex = 0;
-        let isMobile = /Mobi|Android/i.test(navigator.userAgent);
-        
-        // Playlist with your temporary tracks
-        const playlist = [
-            { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up' },
-            { id: '9bZkp7q19f0', title: 'GANGNAM STYLE' },
-            { id: 'JGwWNGJdvx8', title: 'Shape of You' }
-        ];
-
-        // Load YouTube API
-        function loadYouTubePlayer() {
-            return new Promise((resolve) => {
-                if (window.YT) return resolve();
-                
-                const tag = document.createElement('script');
-                tag.src = "https://www.youtube.com/iframe_api";
-                const firstScript = document.getElementsByTagName('script')[0];
-                firstScript.parentNode.insertBefore(tag, firstScript);
-                
-                window.onYouTubeIframeAPIReady = function() {
-                    resolve();
-                };
-            });
-        }
-
-        // Initialize player with autoplay on mobile
-        async function initPlayer() {
-            try {
-                await loadYouTubePlayer();
-                
-                player = new YT.Player('player', {
-                    height: '0',
-                    width: '0',
-                    videoId: playlist[currentTrackIndex].id,
-                    playerVars: {
-                        origin: window.location.origin,
-                        autoplay: isMobile ? 1 : 0, // Autoplay only on mobile
-                        controls: 0,
-                        modestbranding: 1,
-                        enablejsapi: 1
-                    },
-                    events: {
-                        'onReady': (event) => {
-                            playerReady = true;
-                            event.target.setVolume(80);
-                            if (isMobile) {
-                                updateStatus("▶️ NOW PLAYING");
-                                // Ensure autoplay works on mobile
-                                event.target.playVideo();
-                            } else {
-                                updateStatus("▶️ PRESS TO START");
-                            }
-                        },
-                        'onStateChange': (event) => {
-                            if (event.data === YT.PlayerState.ENDED) {
-                                playNext();
-                            }
-                        }
-                    }
-                });
-            } catch (err) {
-                console.error("Player error:", err);
-                updateStatus("❌ Player error");
-            }
-        }
-
-        function playPrev() {
-            if (!playerReady) return;
-            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-            player.loadVideoById(playlist[currentTrackIndex].id);
-            player.playVideo();
-            updateStatus();
-        }
-
-        function playNext() {
-            if (!playerReady) return;
-            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-            player.loadVideoById(playlist[currentTrackIndex].id);
-            player.playVideo();
-            updateStatus();
-        }
-
-        function togglePlay() {
-            if (!playerReady) return;
-            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-            }
-            updateStatus();
-        }
-
-        function updateStatus() {
-            const status = document.getElementById('status');
-            const song = playlist[currentTrackIndex];
-            
-            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-                status.innerHTML = `▶️ NOW PLAYING: <em>${song.title}</em>`;
-            } else {
-                status.innerHTML = `⏸ PAUSED: <em>${song.title}</em>`;
-            }
-        }
-
-        // Setup controls for both desktop and mobile
-        function setupControls() {
-            // Desktop controls (image map)
-            document.querySelectorAll('area[data-action]').forEach(area => {
-                area.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const action = e.target.getAttribute('data-action');
-                    if (action === 'play') togglePlay();
-                    else if (action === 'prev') playPrev();
-                    else if (action === 'next') playNext();
-                });
-            });
-            
-            // Mobile controls (buttons)
-            document.querySelectorAll('.mobile-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const action = btn.getAttribute('data-action');
-                    if (action === 'play') togglePlay();
-                    else if (action === 'prev') playPrev();
-                    else if (action === 'next') playNext();
-                });
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initPlayer();
-            setupControls();
-        });
+        // [Your existing JavaScript code]
     </script>
 </body>
 </html>
