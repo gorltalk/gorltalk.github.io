@@ -20,17 +20,17 @@
             width: 100%;
             display: block;
         }
-        /* VISIBLE BUTTON ZONES */
+        /* PROPERLY VISIBLE BUTTON ZONES */
         .btn-overlay {
             position: absolute;
             border: 3px solid lime;
-            opacity: 0.5;
-            pointer-events: none; /* Lets clicks pass through */
+            background: rgba(0,255,0,0.2);
             z-index: 10;
         }
         #status {
             color: cyan;
             margin-top: 20px;
+            font-size: 1.2em;
         }
     </style>
 </head>
@@ -39,50 +39,42 @@
         <!-- Boombox Image -->
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- VISUAL BUTTON OVERLAYS -->
-        <div class="btn-overlay" style="left: 70px; top: 180px; width: 60px; height: 60px;"></div>
-        <div class="btn-overlay" style="left: 190px; top: 180px; width: 60px; height: 60px;"></div>
-        <div class="btn-overlay" style="left: 310px; top: 180px; width: 60px; height: 60px;"></div>
+        <!-- CORRECTED BUTTON OVERLAYS -->
+        <div class="btn-overlay" style="left: 120px; top: 220px; width: 60px; height: 60px;"></div>
+        <div class="btn-overlay" style="left: 220px; top: 220px; width: 60px; height: 60px;"></div>
+        <div class="btn-overlay" style="left: 320px; top: 220px; width: 60px; height: 60px;"></div>
         
         <!-- INVISIBLE BUTTON MAP -->
         <map name="buttons">
-            <area shape="rect" coords="70,180,130,240" data-action="prev">
-            <area shape="rect" coords="190,180,250,240" data-action="play">
-            <area shape="rect" coords="310,180,370,240" data-action="next">
+            <area shape="rect" coords="120,220,180,280" data-action="prev">
+            <area shape="rect" coords="220,220,280,280" data-action="play">
+            <area shape="rect" coords="320,220,380,280" data-action="next">
         </map>
     </div>
     
-    <div id="status">Click the center button to start</div>
-
-    <!-- AUDIO PLAYER (Hidden) -->
-    <div id="player"></div>
+    <div id="status">🔵 Debug Mode: Green boxes should cover all 3 buttons</div>
 
     <script>
-    // 1. YOUTUBE PLAYER SETUP
+    // 1. YOUTUBE PLAYER
     let player;
-    const playlist = ['dQw4w9WgXcQ']; // Test song
-    
-    function loadPlayer() {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
-    }
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
 
     window.onYouTubeIframeAPIReady = function() {
         player = new YT.Player('player', {
             height: '0',
             width: '0',
-            videoId: playlist[0],
+            videoId: 'dQw4w9WgXcQ',
             playerVars: {
                 autoplay: 0,
                 controls: 0,
-                modestbranding: 1,
                 origin: window.location.href
             },
             events: {
                 'onReady': function(e) {
                     e.target.setVolume(80);
-                    document.getElementById('status').textContent = "✅ Ready! Click center to play";
+                    document.getElementById('status').textContent = "✅ Ready! Click the center green box";
                 }
             }
         });
@@ -90,7 +82,7 @@
 
     // 2. BUTTON CONTROLS
     document.querySelector('[data-action="play"]').addEventListener('click', function() {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+        if (player.getPlayerState() === 1) {
             player.pauseVideo();
             document.getElementById('status').textContent = "⏸ Paused";
         } else {
@@ -98,9 +90,6 @@
             document.getElementById('status').textContent = "▶️ Playing";
         }
     });
-
-    // 3. INITIALIZE
-    loadPlayer();
     </script>
 </body>
 </html>
