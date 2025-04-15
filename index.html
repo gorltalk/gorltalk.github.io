@@ -3,52 +3,74 @@
 <head>
     <title>GorlTalk Boombox</title>
     <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
         body {
             background: #000;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             text-align: center;
-            font-family: Arial;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         #boombox-container {
             position: relative;
-            display: inline-block;
+            width: 90%;
+            max-width: 400px;
             margin: 0 auto;
         }
         #boombox {
-            width: auto;
+            width: 100%;
             height: auto;
-            max-width: 100%;
             display: block;
             cursor: pointer;
         }
-        /* Visual button overlays (for debugging) */
-        .btn-overlay {
-            position: absolute;
-            border: 2px solid lime;
-            background: rgba(0, 255, 0, 0.2);
-            pointer-events: none;
-            z-index: 10;
-        }
         #status {
-            color: cyan;
-            margin-top: 20px;
+            color: #0ff;
+            margin: 15px 0;
             font-size: 1.2em;
+            font-style: italic;
+            min-height: 40px;
+        }
+        /* Mobile controls (hidden by default) */
+        .mobile-controls {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .mobile-btn {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #0ff;
+            color: #0ff;
+            padding: 10px 15px;
+            margin: 0 5px;
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+        }
+        
+        /* Hide image map buttons on mobile */
+        @media (max-width: 768px) {
+            map area {
+                display: none;
+            }
+            .mobile-controls {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
     <div id="boombox-container">
-        <!-- Boombox image with image map -->
-        <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons">
-
-        <!-- Visual overlays (optional, to check alignment) -->
-        <div class="btn-overlay" style="left: 694px; top: 585px; width: 41px; height: 36px;"></div>
-        <div class="btn-overlay" style="left: 741px; top: 583px; width: 41px; height: 40px;"></div>
-        <div class="btn-overlay" style="left: 793px; top: 583px; width: 39px; height: 39px;"></div>
-
-        <!-- Image map (from image-map.net) -->
+        <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons" alt="Boombox">
+        
+        <!-- Original image map (works on desktop) -->
         <map name="buttons">
             <area shape="rect" coords="694,585,735,621" data-action="prev" href="javascript:void(0)" alt="Previous">
             <area shape="rect" coords="741,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
@@ -56,88 +78,153 @@
         </map>
     </div>
 
-    <div id="status">▶️ Click the center button to play</div>
+    <div id="status">▶️ PRESS TO START</div>
+    
+    <!-- Mobile controls (shown only on mobile) -->
+    <div class="mobile-controls">
+        <button class="mobile-btn" data-action="prev">⏮ PREV</button>
+        <button class="mobile-btn" data-action="play">▶ PLAY</button>
+        <button class="mobile-btn" data-action="next">⏭ NEXT</button>
+    </div>
+
+    <!-- Hidden YouTube player -->
+    <div id="player"></div>
 
     <script>
         let player;
         let playerReady = false;
+        let currentTrackIndex = 0;
+        let isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        
+        // Playlist with your temporary tracks
+        const playlist = [
+            { id: 'dQw4w9WgXcQ', title: 'Never Gonna Give You Up' },
+            { id: '9bZkp7q19f0', title: 'GANGNAM STYLE' },
+            { id: 'JGwWNGJdvx8', title: 'Shape of You' }
+        ];
 
         // Load YouTube API
         function loadYouTubePlayer() {
             return new Promise((resolve) => {
-                window.onYouTubeIframeAPIReady = resolve;
+                if (window.YT) return resolve();
+                
                 const tag = document.createElement('script');
                 tag.src = "https://www.youtube.com/iframe_api";
-                tag.onerror = () => {
-                    console.error("Failed to load YouTube API");
+                document.head.appendChild(tag);
+                
+                window.onYouTubeIframeAPIReady = function() {
                     resolve();
                 };
-                document.head.appendChild(tag);
             });
         }
 
-        // Initialize player
+        // Initialize player with autoplay
         async function initPlayer() {
             try {
                 await loadYouTubePlayer();
-                if (window.YT) {
-                    player = new YT.Player('player', {
-                        height: '0',
-                        width: '0',
-                        videoId: 'dQw4w9WgXcQ',
-                        playerVars: {
-                            origin: window.location.href,
-                            autoplay: 0,
-                            controls: 0,
-                            modestbranding: 1
-                        },
-                        events: {
-                            'onReady': (e) => {
-                                e.target.setVolume(80);
-                                playerReady = true;
-                                document.getElementById('status').textContent = "✅ Ready! Click center to play";
-                            }
-                        }
-                    });
-                } else {
-                    document.getElementById('status').textContent = "⚠️ Enable third-party scripts for audio";
-                }
+                
+                player = new YT.Player('player', {
+                    height: '0',
+                    width: '0',
+                    videoId: playlist[currentTrackIndex].id,
+                    playerVars: {
+                        origin: window.location.origin,
+                        autoplay: isMobile ? 1 : 0, // Autoplay on mobile
+                        controls: 0,
+                        modestbranding: 1,
+                        enablejsapi: 1
+                    },
+                    events: {
+                        'onReady': onPlayerReady,
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
             } catch (err) {
-                console.error("Player initialization failed:", err);
-                document.getElementById('status').textContent = "❌ Player error - check console";
+                console.error("Player error:", err);
+                updateStatus("❌ Player error");
             }
         }
 
-        // Setup button controls
+        function onPlayerReady(event) {
+            playerReady = true;
+            event.target.setVolume(80);
+            if (isMobile) {
+                updateStatus("▶️ NOW PLAYING");
+            } else {
+                updateStatus("▶️ PRESS TO START");
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                playNext();
+            }
+        }
+
+        function playPrev() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            updateStatus();
+        }
+
+        function playNext() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            updateStatus();
+        }
+
+        function togglePlay() {
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+            updateStatus();
+        }
+
+        function updateStatus(customMessage) {
+            const status = document.getElementById('status');
+            if (customMessage) {
+                status.textContent = customMessage;
+                return;
+            }
+            
+            const song = playlist[currentTrackIndex];
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                status.innerHTML = `▶️ NOW PLAYING: <em>${song.title}</em>`;
+            } else {
+                status.innerHTML = `⏸ PAUSED: <em>${song.title}</em>`;
+            }
+        }
+
+        // Setup controls for both desktop and mobile
         function setupControls() {
-            // Previous button
-            document.querySelector('area[data-action="prev"]').addEventListener('click', (e) => {
-                e.preventDefault();
-                document.getElementById('status').textContent = "⏮️ Previous pressed";
+            // Desktop controls (image map)
+            document.querySelectorAll('area[data-action]').forEach(area => {
+                area.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (!playerReady) return;
+                    
+                    const action = e.target.getAttribute('data-action');
+                    if (action === 'play') togglePlay();
+                    else if (action === 'prev') playPrev();
+                    else if (action === 'next') playNext();
+                });
             });
-
-            // Play/Pause button
-            document.querySelector('area[data-action="play"]').addEventListener('click', (e) => {
-                e.preventDefault();
-                if (playerReady) {
-                    if (player.getPlayerState() === 1) { // Playing
-                        player.pauseVideo();
-                        document.getElementById('status').textContent = "⏸ Paused - Click to play";
-                    } else { // Paused/Stopped
-                        player.playVideo();
-                        document.getElementById('status').textContent = "▶️ Playing - Click to pause";
-                    }
-                }
-            });
-
-            // Next button
-            document.querySelector('area[data-action="next"]').addEventListener('click', (e) => {
-                e.preventDefault();
-                document.getElementById('status').textContent = "⏭️ Next pressed";
+            
+            // Mobile controls (buttons)
+            document.querySelectorAll('.mobile-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!playerReady) return;
+                    
+                    const action = btn.getAttribute('data-action');
+                    if (action === 'play') togglePlay();
+                    else if (action === 'prev') playPrev();
+                    else if (action === 'next') playNext();
+                });
             });
         }
 
-        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', () => {
             initPlayer();
             setupControls();
