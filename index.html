@@ -10,30 +10,25 @@
         body {
             background: #000;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             text-align: center;
             font-family: 'Share Tech Mono', monospace;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
         }
         #boombox-container {
             position: relative;
-            width: 90%;
-            max-width: 400px;
+            display: inline-block;
             margin: 0 auto;
         }
         #boombox {
-            width: 100%;
+            width: auto;
             height: auto;
+            max-width: 100%;
             display: block;
             cursor: pointer;
         }
         #status {
             color: #0ff;
-            margin: 15px 0;
+            margin-top: 20px;
             font-size: 1.2em;
             font-style: italic;
             min-height: 40px;
@@ -55,10 +50,14 @@
             cursor: pointer;
         }
         
-        /* Hide image map buttons on mobile */
+        /* Switch to mobile controls on small screens */
         @media (max-width: 768px) {
+            #boombox {
+                max-width: 100%;
+                height: auto;
+            }
             map area {
-                display: none;
+                display: none !important;
             }
             .mobile-controls {
                 display: block;
@@ -68,6 +67,7 @@
 </head>
 <body>
     <div id="boombox-container">
+        <!-- Original boombox image (full size on desktop) -->
         <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons" alt="Boombox">
         
         <!-- Original image map (works on desktop) -->
@@ -110,7 +110,8 @@
                 
                 const tag = document.createElement('script');
                 tag.src = "https://www.youtube.com/iframe_api";
-                document.head.appendChild(tag);
+                const firstScript = document.getElementsByTagName('script')[0];
+                firstScript.parentNode.insertBefore(tag, firstScript);
                 
                 window.onYouTubeIframeAPIReady = function() {
                     resolve();
@@ -118,7 +119,7 @@
             });
         }
 
-        // Initialize player with autoplay
+        // Initialize player with autoplay on mobile
         async function initPlayer() {
             try {
                 await loadYouTubePlayer();
@@ -129,14 +130,28 @@
                     videoId: playlist[currentTrackIndex].id,
                     playerVars: {
                         origin: window.location.origin,
-                        autoplay: isMobile ? 1 : 0, // Autoplay on mobile
+                        autoplay: isMobile ? 1 : 0, // Autoplay only on mobile
                         controls: 0,
                         modestbranding: 1,
                         enablejsapi: 1
                     },
                     events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange
+                        'onReady': (event) => {
+                            playerReady = true;
+                            event.target.setVolume(80);
+                            if (isMobile) {
+                                updateStatus("▶️ NOW PLAYING");
+                                // Ensure autoplay works on mobile
+                                event.target.playVideo();
+                            } else {
+                                updateStatus("▶️ PRESS TO START");
+                            }
+                        },
+                        'onStateChange': (event) => {
+                            if (event.data === YT.PlayerState.ENDED) {
+                                playNext();
+                            }
+                        }
                     }
                 });
             } catch (err) {
@@ -145,35 +160,24 @@
             }
         }
 
-        function onPlayerReady(event) {
-            playerReady = true;
-            event.target.setVolume(80);
-            if (isMobile) {
-                updateStatus("▶️ NOW PLAYING");
-            } else {
-                updateStatus("▶️ PRESS TO START");
-            }
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                playNext();
-            }
-        }
-
         function playPrev() {
+            if (!playerReady) return;
             currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
             player.loadVideoById(playlist[currentTrackIndex].id);
+            player.playVideo();
             updateStatus();
         }
 
         function playNext() {
+            if (!playerReady) return;
             currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
             player.loadVideoById(playlist[currentTrackIndex].id);
+            player.playVideo();
             updateStatus();
         }
 
         function togglePlay() {
+            if (!playerReady) return;
             if (player.getPlayerState() === YT.PlayerState.PLAYING) {
                 player.pauseVideo();
             } else {
@@ -182,14 +186,10 @@
             updateStatus();
         }
 
-        function updateStatus(customMessage) {
+        function updateStatus() {
             const status = document.getElementById('status');
-            if (customMessage) {
-                status.textContent = customMessage;
-                return;
-            }
-            
             const song = playlist[currentTrackIndex];
+            
             if (player.getPlayerState() === YT.PlayerState.PLAYING) {
                 status.innerHTML = `▶️ NOW PLAYING: <em>${song.title}</em>`;
             } else {
@@ -203,8 +203,6 @@
             document.querySelectorAll('area[data-action]').forEach(area => {
                 area.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (!playerReady) return;
-                    
                     const action = e.target.getAttribute('data-action');
                     if (action === 'play') togglePlay();
                     else if (action === 'prev') playPrev();
@@ -215,8 +213,6 @@
             // Mobile controls (buttons)
             document.querySelectorAll('.mobile-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    if (!playerReady) return;
-                    
                     const action = btn.getAttribute('data-action');
                     if (action === 'play') togglePlay();
                     else if (action === 'prev') playPrev();
