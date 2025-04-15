@@ -1,104 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GorlTalk Boombox</title>
+    <title>BOOMBOX EMERGENCY FIX</title>
     <meta name="referrer" content="no-referrer">
     <style>
-        body {
-            background: #000;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: Arial;
-        }
-        #boombox {
-            width: 800px; /* Original image size */
-            cursor: pointer;
-        }
-        /* Visualize buttons (remove later) */
-        area {
-            outline: 3px dashed red !important;
-        }
+        body { background: black; margin: 0; text-align: center; padding-top: 50px; }
+        #boombox { width: 800px; cursor: pointer; }
+        area { outline: 3px solid lime !important; } /* GREEN zones = clickable */
+        #status { color: cyan; font-family: Arial; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <!-- Original image - no scaling -->
     <img id="boombox" src="boombox.png" usemap="#buttons">
     
-    <!-- FINAL PERFECT COORDINATES -->
+    <!-- FINAL TESTED COORDINATES -->
     <map name="buttons">
-        <!-- Left Triangle -->
-        <area shape="rect" coords="210,620,290,700" data-action="prev" 
-              onclick="handleControl('prev')">
-        <!-- Center Triangle -->
-        <area shape="rect" coords="400,620,480,700" data-action="play" 
-              onclick="handleControl('play')">
-        <!-- Right Triangle -->
-        <area shape="rect" coords="590,620,670,700" data-action="next" 
-              onclick="handleControl('next')">
+        <!-- LEFT TRIANGLE -->
+        <area shape="rect" coords="200,600,300,720" data-action="prev" onclick="console.log('PREV CLICKED')">
+        <!-- CENTER TRIANGLE -->
+        <area shape="rect" coords="400,600,500,720" data-action="play" onclick="console.log('PLAY CLICKED')">
+        <!-- RIGHT TRIANGLE -->
+        <area shape="rect" coords="600,600,700,720" data-action="next" onclick="console.log('NEXT CLICKED')">
     </map>
-
-    <div id="status" style="color:cyan; margin-top:20px;">Loading player...</div>
+    
+    <div id="status">⚠️ Loading... First click may take 5 seconds</div>
 
     <script>
-    // 1. SIMPLE PLAYER CONTROL
-    let player;
-    
-    function handleControl(action) {
-        if (!player) return;
-        
-        switch(action) {
-            case 'play':
-                if (player.getPlayerState() === 1) {
-                    player.pauseVideo();
-                    document.getElementById('status').textContent = "⏸ Paused";
-                } else {
-                    player.playVideo();
-                    document.getElementById('status').textContent = "▶️ Playing";
-                }
-                break;
-                
-            case 'next':
-                document.getElementById('status').textContent = "⏭️ Next Track";
-                break;
-                
-            case 'prev':
-                document.getElementById('status').textContent = "⏮️ Previous Track";
-                break;
-        }
-    }
+    // ULTRA-SIMPLE PLAYER LOAD
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
 
-    // 2. RELIABLE YOUTUBE LOAD
-    function loadPlayer() {
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
-        
-        window.onYouTubeIframeAPIReady = function() {
-            player = new YT.Player('player', {
-                height: '0',
-                width: '0',
-                videoId: 'dQw4w9WgXcQ',
-                playerVars: {
-                    autoplay: 0,
-                    controls: 0,
-                    origin: window.location.href
-                },
-                events: {
-                    'onReady': function(e) {
-                        e.target.setVolume(80);
-                        document.getElementById('status').textContent = "✅ Ready! Click buttons";
-                        console.log("Player fully loaded!");
-                    }
+    window.onYouTubeIframeAPIReady = () => {
+        const player = new YT.Player('player', {
+            height: '0',
+            width: '0',
+            videoId: 'dQw4w9WgXcQ',
+            playerVars: { autoplay: 0, controls: 0, origin: location.href },
+            events: {
+                'onReady': (e) => {
+                    e.target.setVolume(80);
+                    document.getElementById('status').textContent = "✅ READY! Click buttons → check console";
                 }
-            });
+            }
+        });
+        
+        // Connect buttons
+        document.querySelector('[data-action="play"]').onclick = () => {
+            player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo();
         };
-    }
-
-    // 3. START PLAYER
-    loadPlayer();
+    };
     </script>
 </body>
 </html>
