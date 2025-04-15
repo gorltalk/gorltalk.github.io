@@ -37,7 +37,7 @@
             width: 90%;
             max-width: 400px;
         }
-        /* Remove these debug overlays when done testing */
+        /* Debug overlays - keep these while testing */
         .btn-overlay {
             position: absolute;
             border: 1px solid lime;
@@ -51,22 +51,24 @@
     <div id="boombox-container">
         <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons" alt="Boombox">
         
-        <!-- Scaled-down debug overlays -->
-        <div class="btn-overlay" style="left: 60%; top: 55%; width: 8%; height: 7%;"></div>
-        <div class="btn-overlay" style="left: 70%; top: 55%; width: 8%; height: 7%;"></div>
-        <div class="btn-overlay" style="left: 80%; top: 55%; width: 8%; height: 7%;"></div>
+        <!-- Adjusted debug overlays based on your screenshot -->
+        <div class="btn-overlay" style="left: 25%; top: 50%; width: 15%; height: 15%;"></div>
+        <div class="btn-overlay" style="left: 45%; top: 50%; width: 15%; height: 15%;"></div>
+        <div class="btn-overlay" style="left: 65%; top: 50%; width: 15%; height: 15%;"></div>
         
-        <!-- Scaled image map -->
+        <!-- Corrected image map coordinates -->
         <map name="buttons">
-            <area shape="rect" coords="60,55,68,62" data-action="prev" href="javascript:void(0)" alt="Previous">
-            <area shape="rect" coords="70,55,78,62" data-action="play" href="javascript:void(0)" alt="Play">
-            <area shape="rect" coords="80,55,88,62" data-action="next" href="javascript:void(0)" alt="Next">
+            <area shape="rect" coords="25,50,40,65" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="45,50,60,65" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="65,50,80,65" data-action="next" href="javascript:void(0)" alt="Next">
         </map>
     </div>
 
     <div id="status">🔇 Loading boombox...</div>
 
     <script>
+        // [Keep all the same JavaScript code from previous version]
+        // This ensures all your player functionality remains unchanged
         let player;
         let playerReady = false;
         let currentTrackIndex = 0;
