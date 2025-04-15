@@ -6,21 +6,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        /* [Keep all your existing CSS] */
-        /* Added mobile-specific tweaks below */
+        body {
+            background: #000;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            font-family: 'VT323', monospace;
+            letter-spacing: 1px;
+        }
+        #boombox-container {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+        }
+        #boombox {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            display: block;
+        }
+        /* Debug overlays (hidden on mobile) */
+        .btn-overlay {
+            position: absolute;
+            border: 2px solid lime;
+            background: rgba(0, 255, 0, 0.2);
+            pointer-events: none;
+            z-index: 10;
+        }
+        #status {
+            color: #0ff;
+            margin: 15px 0;
+            font-size: 1.5em;
+            text-transform: uppercase;
+        }
+        /* Mobile controls */
+        .mobile-controls {
+            display: none;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+        }
         .mobile-btn {
-            padding: 12px 20px; /* Larger tap targets */
-            font-size: 1.5em; /* Bigger text */
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #0ff;
+            color: #0ff;
+            font-family: 'VT323', monospace;
+            font-size: 1.3em;
+            padding: 8px 15px;
+            cursor: pointer;
+            flex: 1;
+            max-width: 100px;
         }
         @media (max-width: 768px) {
-            #boombox {
-                pointer-events: none; /* Disable image map on mobile */
+            /* Hide desktop button cutouts on mobile */
+            .btn-overlay {
+                display: none;
+            }
+            /* Show mobile controls */
+            .mobile-controls {
+                display: flex;
+            }
+            /* Larger text on mobile */
+            #status {
+                font-size: 1.8em;
             }
         }
     </style>
 </head>
 <body>
-    <!-- [Keep your existing HTML structure] -->
+    <div id="boombox-container">
+        <img id="boombox" src="https://gorltalkradio.github.io/boombox.png" usemap="#buttons" alt="Boombox">
+        
+        <!-- Desktop button overlays -->
+        <div class="btn-overlay" style="left: 694px; top: 585px; width: 41px; height: 36px;"></div>
+        <div class="btn-overlay" style="left: 741px; top: 583px; width: 41px; height: 40px;"></div>
+        <div class="btn-overlay" style="left: 793px; top: 583px; width: 39px; height: 39px;"></div>
+        
+        <map name="buttons">
+            <area shape="rect" coords="694,585,735,621" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="741,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="793,583,832,622" data-action="next" href="javascript:void(0)" alt="Next">
+        </map>
+    </div>
+
+    <div id="status">▶️ PRESS START</div>
+    
+    <!-- Mobile controls -->
+    <div class="mobile-controls">
+        <button class="mobile-btn" data-action="prev">⏮</button>
+        <button class="mobile-btn" data-action="play">▶</button>
+        <button class="mobile-btn" data-action="next">⏭</button>
+    </div>
+
+    <div id="player"></div>
+
     <script>
         let player;
         let playerReady = false;
@@ -28,68 +108,121 @@
         const isMobile = /Mobi|Android/i.test(navigator.userAgent);
         
         const playlist = [
-            { id: 'dQw4w9WgXcQ', title: 'NEVER GONNA GIVE YOU UP' }
-            // [Keep your other tracks]
+            { id: 'dQw4w9WgXcQ', title: 'NEVER GONNA GIVE YOU UP' },
+            { id: '9bZkp7q19f0', title: 'GANGNAM STYLE' },
+            { id: 'JGwWNGJdvx8', title: 'SHAPE OF YOU' },
+            { id: 'kJQP7kiw5Fk', title: 'DESPACITO' }
         ];
 
-        async function initPlayer() {
-            await loadYouTubePlayer();
-            
-            player = new YT.Player('player', {
-                height: '0',
-                width: '0',
-                videoId: playlist[currentTrackIndex].id,
-                playerVars: {
-                    origin: window.location.origin,
-                    autoplay: isMobile ? 0 : 1, // Disable autoplay on mobile
-                    controls: 0,
-                    modestbranding: 1,
-                    enablejsapi: 1
-                },
-                events: {
-                    'onReady': (event) => {
-                        playerReady = true;
-                        event.target.setVolume(80);
-                        if (isMobile) {
-                            // Mobile workaround: Show play button first
-                            updateStatus("▶️ TAP PLAY");
-                        } else {
-                            updateStatus("▶️ NOW PLAYING");
-                        }
-                    }
-                }
+        function loadYouTubePlayer() {
+            return new Promise((resolve) => {
+                if (window.YT) return resolve();
+                
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.head.appendChild(tag);
+                
+                window.onYouTubeIframeAPIReady = () => resolve();
             });
         }
 
-        // Modified mobile play function
-        function handleFirstPlay() {
-            if (isMobile && !playerReady) return;
-            
-            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-                player.playVideo();
-                updateStatus();
+        async function initPlayer() {
+            try {
+                await loadYouTubePlayer();
+                
+                player = new YT.Player('player', {
+                    height: '0',
+                    width: '0',
+                    videoId: playlist[currentTrackIndex].id,
+                    playerVars: {
+                        origin: window.location.origin,
+                        autoplay: 1, // Autoplay on both mobile and desktop
+                        controls: 0,
+                        modestbranding: 1,
+                        enablejsapi: 1
+                    },
+                    events: {
+                        'onReady': (event) => {
+                            playerReady = true;
+                            event.target.setVolume(80);
+                            updateStatus("▶️ NOW PLAYING");
+                        },
+                        'onStateChange': (event) => {
+                            if (event.data === YT.PlayerState.ENDED) {
+                                playNext();
+                            }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error("Player error:", err);
+                updateStatus("❌ PLAYER ERROR");
             }
         }
 
-        // Update your mobile button event listeners:
-        document.querySelectorAll('.mobile-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const action = this.getAttribute('data-action');
-                
-                // Required for mobile playback initiation
-                if (!playerReady) initPlayer();
-                
-                if (action === 'play') {
-                    handleFirstPlay(); // Special mobile handling
-                } else if (action === 'prev') {
-                    playPrev();
-                } else if (action === 'next') {
-                    playNext();
-                }
-            });
-        });
+        function playPrev() {
+            if (!playerReady) return;
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            player.playVideo();
+        }
 
-        /* [Keep other functions the same] */
+        function playNext() {
+            if (!playerReady) return;
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            player.playVideo();
+        }
+
+        function togglePlay() {
+            if (!playerReady) return;
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+            updateStatus();
+        }
+
+        function updateStatus(customMessage) {
+            const status = document.getElementById('status');
+            if (customMessage) {
+                status.textContent = customMessage;
+                return;
+            }
+            const song = playlist[currentTrackIndex];
+            status.textContent = player.getPlayerState() === YT.PlayerState.PLAYING 
+                ? `▶️ ${song.title}` 
+                : `⏸ ${song.title}`;
+        }
+
+        function setupControls() {
+            // Desktop controls
+            document.querySelectorAll('area[data-action]').forEach(area => {
+                area.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const action = e.target.getAttribute('data-action');
+                    if (action === 'play') togglePlay();
+                    else if (action === 'prev') playPrev();
+                    else if (action === 'next') playNext();
+                });
+            });
+            
+            // Mobile controls
+            document.querySelectorAll('.mobile-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.getAttribute('data-action');
+                    if (action === 'play') togglePlay();
+                    else if (action === 'prev') playPrev();
+                    else if (action === 'next') playNext();
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlayer();
+            setupControls();
+        });
     </script>
 </body>
 </html>
