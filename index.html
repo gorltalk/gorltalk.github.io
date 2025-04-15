@@ -7,94 +7,69 @@
         body {
             background: #000;
             margin: 0;
-            padding: 10px;
+            padding: 20px;
             text-align: center;
-            font-family: Arial, sans-serif;
+            font-family: Arial;
         }
         #boombox-container {
             position: relative;
             display: inline-block;
-            width: 430px;
-            max-width: 100%;
             margin: 0 auto;
         }
         #boombox {
-            width: 100%;
+            width: auto;
             height: auto;
+            max-width: 100%;
             display: block;
             cursor: pointer;
-            user-select: none;
         }
-        #status {
-            color: #0ff;
-            margin: 15px auto;
-            font-size: 1em;
-            min-height: 2em;
-            max-width: 430px;
-            word-wrap: break-word;
-        }
-        /* Visual debugging (remove when done) */
-        .btn-debug {
+        /* Visual button overlays (for debugging) */
+        .btn-overlay {
             position: absolute;
             border: 2px solid lime;
-            background: rgba(0,255,0,0.2);
+            background: rgba(0, 255, 0, 0.2);
             pointer-events: none;
             z-index: 10;
+        }
+        #status {
+            color: cyan;
+            margin-top: 20px;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
     <div id="boombox-container">
-        <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons" alt="Boombox">
-        
-        <!-- Debug overlays (remove when working) -->
-        <div class="btn-debug" style="left: 693px; top: 584px; width: 43px; height: 37px;"></div>
-        <div class="btn-debug" style="left: 743px; top: 583px; width: 39px; height: 40px;"></div>
-        <div class="btn-debug" style="left: 792px; top: 583px; width: 40px; height: 40px;"></div>
-        
-        <!-- Active button areas -->
+        <!-- Boombox image with image map -->
+        <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons">
+
+        <!-- Visual overlays (optional, to check alignment) -->
+        <div class="btn-overlay" style="left: 694px; top: 585px; width: 41px; height: 36px;"></div>
+        <div class="btn-overlay" style="left: 741px; top: 583px; width: 41px; height: 40px;"></div>
+        <div class="btn-overlay" style="left: 793px; top: 583px; width: 39px; height: 39px;"></div>
+
+        <!-- Image map (from image-map.net) -->
         <map name="buttons">
-            <area shape="rect" coords="693,584,736,621" data-action="prev" href="javascript:void(0)" alt="Previous" title="Previous Track">
-            <area shape="rect" coords="743,583,782,623" data-action="play" href="javascript:void(0)" alt="Play/Pause" title="Play/Pause">
-            <area shape="rect" coords="792,583,832,623" data-action="next" href="javascript:void(0)" alt="Next" title="Next Track">
+            <area shape="rect" coords="694,585,735,621" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="741,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="793,583,832,622" data-action="next" href="javascript:void(0)" alt="Next">
         </map>
     </div>
-    
-    <div id="status">🔇 Loading boombox...</div>
-    
-    <!-- Hidden YouTube player -->
-    <div id="player"></div>
+
+    <div id="status">▶️ Click the center button to play</div>
 
     <script>
-        // Player configuration
-        const config = {
-            initialVolume: 80,
-            playlist: [
-                { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' },
-                { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' },
-                { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You' },
-                { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito' }
-            ]
-        };
-
-        // Player state
-        const state = {
-            player: null,
-            ready: false,
-            currentTrack: 0
-        };
+        let player;
+        let playerReady = false;
 
         // Load YouTube API
-        function loadYouTubeAPI() {
+        function loadYouTubePlayer() {
             return new Promise((resolve) => {
-                if (window.YT) return resolve();
-                
                 window.onYouTubeIframeAPIReady = resolve;
                 const tag = document.createElement('script');
                 tag.src = "https://www.youtube.com/iframe_api";
                 tag.onerror = () => {
-                    console.error("YouTube API failed to load");
-                    document.getElementById('status').textContent = "❌ YouTube failed to load";
+                    console.error("Failed to load YouTube API");
                     resolve();
                 };
                 document.head.appendChild(tag);
@@ -104,97 +79,61 @@
         // Initialize player
         async function initPlayer() {
             try {
-                await loadYouTubeAPI();
-                
-                if (!window.YT) {
-                    throw new Error("YouTube API not available");
+                await loadYouTubePlayer();
+                if (window.YT) {
+                    player = new YT.Player('player', {
+                        height: '0',
+                        width: '0',
+                        videoId: 'dQw4w9WgXcQ',
+                        playerVars: {
+                            origin: window.location.href,
+                            autoplay: 0,
+                            controls: 0,
+                            modestbranding: 1
+                        },
+                        events: {
+                            'onReady': (e) => {
+                                e.target.setVolume(80);
+                                playerReady = true;
+                                document.getElementById('status').textContent = "✅ Ready! Click center to play";
+                            }
+                        }
+                    });
+                } else {
+                    document.getElementById('status').textContent = "⚠️ Enable third-party scripts for audio";
                 }
-                
-                state.player = new YT.Player('player', {
-                    height: '0',
-                    width: '0',
-                    videoId: config.playlist[state.currentTrack].id,
-                    playerVars: {
-                        origin: window.location.origin,
-                        autoplay: 0,
-                        controls: 0,
-                        modestbranding: 1,
-                        rel: 0
-                    },
-                    events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange
-                    }
-                });
-            } catch (error) {
-                console.error("Player initialization failed:", error);
+            } catch (err) {
+                console.error("Player initialization failed:", err);
                 document.getElementById('status').textContent = "❌ Player error - check console";
             }
         }
 
-        function onPlayerReady(event) {
-            state.ready = true;
-            event.target.setVolume(config.initialVolume);
-            updateStatus("✅ Ready! Click PLAY");
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                playNext();
-            }
-        }
-
-        // Player controls
-        function playPrev() {
-            state.currentTrack = (state.currentTrack - 1 + config.playlist.length) % config.playlist.length;
-            state.player.loadVideoById(config.playlist[state.currentTrack].id);
-            updateStatus();
-        }
-
-        function playNext() {
-            state.currentTrack = (state.currentTrack + 1) % config.playlist.length;
-            state.player.loadVideoById(config.playlist[state.currentTrack].id);
-            updateStatus();
-        }
-
-        function togglePlay() {
-            if (state.player.getPlayerState() === YT.PlayerState.PLAYING) {
-                state.player.pauseVideo();
-            } else {
-                state.player.playVideo();
-            }
-            updateStatus();
-        }
-
-        // UI updates
-        function updateStatus(customMessage) {
-            const statusEl = document.getElementById('status');
-            if (customMessage) {
-                statusEl.innerHTML = customMessage;
-                return;
-            }
-            
-            const song = config.playlist[state.currentTrack];
-            const isPlaying = state.player.getPlayerState() === YT.PlayerState.PLAYING;
-            statusEl.innerHTML = isPlaying 
-                ? `▶️ Playing: <strong>${song.title}</strong>` 
-                : `⏸ Paused: <strong>${song.title}</strong>`;
-        }
-
         // Setup button controls
         function setupControls() {
-            const controls = {
-                prev: () => { if (state.ready) playPrev(); },
-                play: () => { if (state.ready) togglePlay(); },
-                next: () => { if (state.ready) playNext(); }
-            };
-            
-            document.querySelectorAll('area[data-action]').forEach(area => {
-                const action = area.getAttribute('data-action');
-                area.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    controls[action]();
-                });
+            // Previous button
+            document.querySelector('area[data-action="prev"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('status').textContent = "⏮️ Previous pressed";
+            });
+
+            // Play/Pause button
+            document.querySelector('area[data-action="play"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (playerReady) {
+                    if (player.getPlayerState() === 1) { // Playing
+                        player.pauseVideo();
+                        document.getElementById('status').textContent = "⏸ Paused - Click to play";
+                    } else { // Paused/Stopped
+                        player.playVideo();
+                        document.getElementById('status').textContent = "▶️ Playing - Click to pause";
+                    }
+                }
+            });
+
+            // Next button
+            document.querySelector('area[data-action="next"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                document.getElementById('status').textContent = "⏭️ Next pressed";
             });
         }
 
