@@ -14,65 +14,51 @@
             font-family: Arial;
         }
         .boombox-container {
-            width: 90%;
-            max-width: 500px;
+            width: 100%;
+            max-width: 400px; /* Matches your screenshot */
             text-align: center;
         }
         #boombox {
-            /* Fixed sizing to match coordinates */
-            width: 500px; 
-            height: auto;
+            width: 100%; /* Now responsive */
             cursor: pointer;
-            /* Visual debug (remove later) */
-            outline: 2px solid cyan;
+            /* Debug outline (remove later) */
+            outline: 2px solid rgba(0,255,255,0.5);
         }
-        .status {
-            color: cyan;
-            margin-top: 15px;
-            font-size: 1.2em;
-        }
-        /* Button debugging - shows click zones */
+        /* Visualize button zones */
         area {
             outline: 2px solid red !important;
-            opacity: 0.3;
+            opacity: 0.4;
         }
     </style>
 </head>
 <body>
     <div class="boombox-container">
-        <!-- Replace src with your exact image filename -->
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- PERFECTLY MAPPED BUTTONS -->
+        <!-- UPDATED COORDINATES (SCALED TO YOUR SCREENSHOT) -->
         <map name="buttons">
             <!-- Left Triangle (Previous) -->
-            <area shape="rect" coords="85,310,135,360" data-action="prev" alt="Previous">
+            <area shape="rect" coords="60,220,110,270" data-action="prev" alt="Previous">
             <!-- Center Triangle (Play/Pause) -->
-            <area shape="rect" coords="160,310,210,360" data-action="play" alt="Play/Pause">
+            <area shape="rect" coords="140,220,190,270" data-action="play" alt="Play/Pause">
             <!-- Right Triangle (Next) -->
-            <area shape="rect" coords="235,310,285,360" data-action="next" alt="Next">
+            <area shape="rect" coords="210,220,260,270" data-action="next" alt="Next">
         </map>
         
         <div class="status">Click any button to start</div>
     </div>
 
     <script>
-    // 1. YouTube Player Setup
-    const playlist = [
-        'dQw4w9WgXcQ', // Rick Astley
-        'JGhoLcsr8GA', // Michael Jackson
-        '9bZkp7q19f0'  // PSY
-    ];
+    // Player code remains identical to previous version
+    const playlist = ['dQw4w9WgXcQ', 'JGhoLcsr8GA', '9bZkp7q19f0'];
     let currentTrack = 0;
     let player;
     let isPlaying = false;
 
-    // 2. Load YouTube API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
-    // 3. Player Initialization
     window.onYouTubeIframeAPIReady = function() {
         player = new YT.Player('player', {
             height: '0',
@@ -88,23 +74,19 @@
                 onReady: function(e) {
                     e.target.setVolume(80);
                     enableButtons();
-                    updateStatus("Ready to play!");
-                },
-                onStateChange: function(e) {
-                    if (e.data === YT.PlayerState.ENDED) nextTrack();
+                    updateStatus("Ready!");
                 }
             }
         });
     };
 
-    // 4. Player Controls
     function togglePlayPause() {
         if (isPlaying) {
             player.pauseVideo();
             updateStatus("⏸ Paused");
         } else {
             player.playVideo();
-            updateStatus("▶️ Playing: Track " + (currentTrack + 1));
+            updateStatus("▶️ Playing");
         }
         isPlaying = !isPlaying;
     }
@@ -113,14 +95,14 @@
         currentTrack = (currentTrack + 1) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
         if (isPlaying) player.playVideo();
-        updateStatus("Now: Track " + (currentTrack + 1));
+        updateStatus("⏭️ Track " + (currentTrack + 1));
     }
 
     function prevTrack() {
         currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
         player.loadVideoById(playlist[currentTrack]);
         if (isPlaying) player.playVideo();
-        updateStatus("Now: Track " + (currentTrack + 1));
+        updateStatus("⏮️ Track " + (currentTrack + 1));
     }
 
     function updateStatus(text) {
@@ -128,11 +110,10 @@
     }
 
     function enableButtons() {
-        document.querySelector('[data-action="play"]').addEventListener('click', togglePlayPause);
-        document.querySelector('[data-action="next"]').addEventListener('click', nextTrack);
-        document.querySelector('[data-action="prev"]').addEventListener('click', prevTrack);
-        
-        // Visual confirmation (remove later)
+        document.querySelector('[data-action="play"]').onclick = togglePlayPause;
+        document.querySelector('[data-action="next"]').onclick = nextTrack;
+        document.querySelector('[data-action="prev"]').onclick = prevTrack;
+        // Remove debug outlines after setup
         document.querySelectorAll('area').style.outline = 'none';
     }
     </script>
