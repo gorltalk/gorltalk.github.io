@@ -11,10 +11,15 @@
             text-align: center;
             font-family: Arial;
         }
+        /* KEY FIX: Display image at ACTUAL size */
         #boombox {
-            width: 800px; /* Match your image size */
-            height: auto;
+            width: auto !important;
+            height: auto !important;
+            max-width: 100%;
+            display: block;
+            margin: 0 auto;
             cursor: pointer;
+            outline: 2px solid cyan; /* Debug border */
         }
         /* Visible button zones */
         area {
@@ -24,24 +29,28 @@
         #status {
             color: cyan;
             margin-top: 20px;
+            font-size: 1.2em;
         }
     </style>
 </head>
 <body>
-    <!-- Your Image with Custom Coordinates -->
+    <!-- Image displays at ORIGINAL size -->
     <img id="boombox" src="boombox.png" usemap="#buttons">
     
-    <!-- YOUR PERFECT BUTTON MAPPING -->
+    <!-- PROPERLY ORDERED COORDINATES -->
     <map name="buttons">
-        <area shape="rect" coords="419,507,389,480" data-action="prev" alt="Previous">
-        <area shape="rect" coords="452,507,424,479" data-action="play" alt="Play/Pause">
-        <area shape="rect" coords="488,506,459,480" data-action="next" alt="Next">
+        <!-- Left Button -->
+        <area shape="rect" coords="389,480,419,507" data-action="prev">
+        <!-- Center Button -->
+        <area shape="rect" coords="424,479,452,507" data-action="play">
+        <!-- Right Button -->
+        <area shape="rect" coords="459,480,488,506" data-action="next">
     </map>
     
-    <div id="status">✅ Buttons mapped! Click to test</div>
+    <div id="status">🔄 Loading player...</div>
 
     <script>
-    // 1. YouTube Player Setup
+    // 1. YouTube Player
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
@@ -51,7 +60,7 @@
         player = new YT.Player('player', {
             height: '0',
             width: '0',
-            videoId: 'dQw4w9WgXcQ', // Test video
+            videoId: 'dQw4w9WgXcQ',
             playerVars: {
                 autoplay: 0,
                 controls: 0,
@@ -60,29 +69,27 @@
             events: {
                 'onReady': function(e) {
                     e.target.setVolume(80);
-                    document.getElementById('status').textContent = "🔥 Ready! Click buttons:";
+                    document.getElementById('status').textContent = "✅ Ready! Click buttons:";
+                    
+                    // Connect buttons
+                    document.querySelector('[data-action="play"]').onclick = function() {
+                        if (player.getPlayerState() === 1) {
+                            player.pauseVideo();
+                            document.getElementById('status').textContent = "⏸ Paused";
+                        } else {
+                            player.playVideo();
+                            document.getElementById('status').textContent = "▶️ Playing";
+                        }
+                    };
+                    document.querySelector('[data-action="prev"]').onclick = function() {
+                        document.getElementById('status').textContent = "⏮️ Previous pressed";
+                    };
+                    document.querySelector('[data-action="next"]').onclick = function() {
+                        document.getElementById('status').textContent = "⏭️ Next pressed";
+                    };
                 }
             }
         });
-    };
-
-    // 2. Button Actions
-    document.querySelector('[data-action="play"]').onclick = function() {
-        if (player.getPlayerState() === 1) {
-            player.pauseVideo();
-            document.getElementById('status').textContent = "⏸ Paused";
-        } else {
-            player.playVideo();
-            document.getElementById('status').textContent = "▶️ Playing";
-        }
-    };
-
-    document.querySelector('[data-action="prev"]').onclick = function() {
-        document.getElementById('status').textContent = "⏮️ Previous pressed";
-    };
-
-    document.querySelector('[data-action="next"]').onclick = function() {
-        document.getElementById('status').textContent = "⏭️ Next pressed";
     };
     </script>
 </body>
