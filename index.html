@@ -14,7 +14,7 @@
         #boombox-container {
             position: relative;
             display: inline-block;
-            width: 430px; /* Matches your image width */
+            width: 430px;
             max-width: 100%;
         }
         #boombox {
@@ -22,14 +22,6 @@
             height: auto;
             display: block;
             cursor: pointer;
-        }
-        /* Visual button overlays (optional for debugging) */
-        .btn-overlay {
-            position: absolute;
-            border: 2px solid lime;
-            background: rgba(0,255,0,0.2);
-            pointer-events: none;
-            z-index: 10;
         }
         #status {
             color: cyan;
@@ -41,25 +33,18 @@
 </head>
 <body>
     <div id="boombox-container">
-        <!-- Your boombox image -->
         <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons">
         
-        <!-- Visual overlays matching your latest coordinates -->
-        <div class="btn-overlay" style="left: 138px; top: 175px; width: 43px; height: 37px;"></div>
-        <div class="btn-overlay" style="left: 149px; top: 175px; width: 39px; height: 40px;"></div>
-        <div class="btn-overlay" style="left: 158px; top: 175px; width: 40px; height: 40px;"></div>
-        
-        <!-- Image map with your latest coordinates -->
+        <!-- Your latest image-map.net coordinates -->
         <map name="buttons">
-            <area shape="rect" coords="138,175,181,212" data-action="prev" href="javascript:void(0)" alt="Previous">
-            <area shape="rect" coords="149,175,188,215" data-action="play" href="javascript:void(0)" alt="Play">
-            <area shape="rect" coords="158,175,198,215" data-action="next" href="javascript:void(0)" alt="Next">
+            <area shape="rect" coords="693,584,736,621" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="743,583,782,623" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="792,583,832,623" data-action="next" href="javascript:void(0)" alt="Next">
         </map>
     </div>
     
     <div id="status">🔇 Boombox ready - Press PLAY</div>
     
-    <!-- Hidden YouTube player -->
     <div id="player"></div>
 
     <script>
@@ -67,7 +52,6 @@
         let playerReady = false;
         let currentTrackIndex = 0;
         
-        // Temporary playlist
         const playlist = [
             { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' },
             { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' },
