@@ -11,93 +11,136 @@
             text-align: center;
             font-family: Arial;
         }
+        #boombox-container {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto;
+        }
         #boombox {
             width: auto;
             height: auto;
             max-width: 100%;
             display: block;
-            margin: 0 auto;
             cursor: pointer;
         }
         /* VISIBLE BUTTON ZONES */
-        area {
-            outline: 3px solid lime !important;
-            opacity: 0.7;
-            display: block !important;
+        .btn-overlay {
+            position: absolute;
+            border: 3px solid lime;
+            background: rgba(0,255,0,0.2);
+            pointer-events: none;
+            z-index: 10;
         }
         #status {
             color: cyan;
             margin-top: 20px;
             font-size: 1.2em;
         }
-        #player {
-            display: none;
-        }
     </style>
 </head>
 <body>
-    <!-- Your boombox image -->
-    <img id="boombox" src="boombox.png" usemap="#buttons">
+    <div id="boombox-container">
+        <!-- Your boombox image -->
+        <img id="boombox" src="boombox.png" usemap="#buttons">
+        
+        <!-- VISUAL BUTTON OVERLAYS -->
+        <div class="btn-overlay" style="left: 389px; top: 480px; width: 30px; height: 27px;"></div>
+        <div class="btn-overlay" style="left: 424px; top: 479px; width: 28px; height: 28px;"></div>
+        <div class="btn-overlay" style="left: 459px; top: 480px; width: 29px; height: 26px;"></div>
+        
+        <!-- INVISIBLE BUTTON MAP -->
+        <map name="buttons">
+            <area shape="rect" coords="389,480,419,507" data-action="prev">
+            <area shape="rect" coords="424,479,452,507" data-action="play">
+            <area shape="rect" coords="459,480,488,506" data-action="next">
+        </map>
+    </div>
     
-    <!-- CORRECT BUTTON MAPPING (using your coordinates) -->
-    <map name="buttons">
-        <area shape="rect" coords="389,480,419,507" data-action="prev" alt="Previous">
-        <area shape="rect" coords="424,479,452,507" data-action="play" alt="Play/Pause">
-        <area shape="rect" coords="459,480,488,506" data-action="next" alt="Next">
-    </map>
-    
-    <div id="status">🔵 Click any button to start</div>
-    <div id="player"></div> <!-- Hidden YouTube player -->
+    <div id="status">▶️ Click the center green box to play</div>
 
     <script>
-    // 1. PLAYER SETUP
+    // 1. YOUTUBE PLAYER SETUP
     let player;
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
+    let playerReady = false;
+    
+    // Load YouTube API with error handling
+    function loadYouTubePlayer() {
+        return new Promise((resolve) => {
+            window.onYouTubeIframeAPIReady = resolve;
+            
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            tag.onerror = () => {
+                console.error("Failed to load YouTube API");
+                resolve();
+            };
+            document.head.appendChild(tag);
+        });
+    }
 
     // 2. INITIALIZE PLAYER
-    window.onYouTubeIframeAPIReady = function() {
-        player = new YT.Player('player', {
-            height: '0',
-            width: '0',
-            videoId: 'dQw4w9WgXcQ', // Test video
-            playerVars: {
-                origin: window.location.href,
-                autoplay: 0,
-                controls: 0
-            },
-            events: {
-                'onReady': function(e) {
-                    e.target.setVolume(80);
-                    document.getElementById('status').textContent = "✅ Ready! Click center button";
-                    setupButtons();
+    async function initPlayer() {
+        try {
+            await loadYouTubePlayer();
+            
+            if (window.YT) {
+                player = new YT.Player('player', {
+                    height: '0',
+                    width: '0',
+                    videoId: 'dQw4w9WgXcQ',
+                    playerVars: {
+                        origin: window.location.href,
+                        autoplay: 0,
+                        controls: 0,
+                        modestbranding: 1
+                    },
+                    events: {
+                        'onReady': (e) => {
+                            e.target.setVolume(80);
+                            playerReady = true;
+                            document.getElementById('status').textContent = "✅ Ready! Click center to play";
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('status').textContent = "⚠️ Enable third-party scripts for audio";
+            }
+        } catch (err) {
+            console.error("Player initialization failed:", err);
+            document.getElementById('status').textContent = "❌ Player error - check console";
+        }
+    }
+
+    // 3. BUTTON CONTROLS
+    function setupControls() {
+        // Play/Pause
+        document.querySelector('[data-action="play"]').addEventListener('click', () => {
+            if (playerReady) {
+                if (player.getPlayerState() === 1) {
+                    player.pauseVideo();
+                    document.getElementById('status').textContent = "⏸ Paused - Click to play";
+                } else {
+                    player.playVideo();
+                    document.getElementById('status').textContent = "▶️ Playing - Click to pause";
                 }
             }
         });
-    };
-
-    // 3. BUTTON CONTROLS
-    function setupButtons() {
-        // Play/Pause
-        document.querySelector('[data-action="play"]').onclick = function() {
-            if (player.getPlayerState() === 1) {
-                player.pauseVideo();
-                document.getElementById('status').textContent = "⏸ Paused";
-            } else {
-                player.playVideo();
-                document.getElementById('status').textContent = "▶️ Playing";
-            }
-        };
         
-        // Navigation (add your playlist logic later)
-        document.querySelector('[data-action="prev"]').onclick = function() {
+        // Navigation buttons
+        document.querySelector('[data-action="prev"]').addEventListener('click', () => {
             document.getElementById('status').textContent = "⏮️ Previous pressed";
-        };
-        document.querySelector('[data-action="next"]').onclick = function() {
+        });
+        
+        document.querySelector('[data-action="next"]').addEventListener('click', () => {
             document.getElementById('status').textContent = "⏭️ Next pressed";
-        };
+        });
     }
+
+    // 4. START EVERYTHING
+    document.addEventListener('DOMContentLoaded', () => {
+        initPlayer();
+        setupControls();
+    });
     </script>
 </body>
 </html>
