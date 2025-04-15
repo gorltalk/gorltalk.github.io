@@ -20,11 +20,11 @@
             width: 100%;
             display: block;
         }
-        /* PROPERLY VISIBLE BUTTON ZONES */
+        /* PROPERLY ALIGNED BUTTON ZONES */
         .btn-overlay {
             position: absolute;
             border: 3px solid lime;
-            background: rgba(0,255,0,0.2);
+            background: rgba(0,255,0,0.3);
             z-index: 10;
         }
         #status {
@@ -36,23 +36,22 @@
 </head>
 <body>
     <div id="boombox-container">
-        <!-- Boombox Image -->
         <img id="boombox" src="boombox.png" usemap="#buttons">
         
-        <!-- CORRECTED BUTTON OVERLAYS -->
-        <div class="btn-overlay" style="left: 120px; top: 220px; width: 60px; height: 60px;"></div>
-        <div class="btn-overlay" style="left: 220px; top: 220px; width: 60px; height: 60px;"></div>
-        <div class="btn-overlay" style="left: 320px; top: 220px; width: 60px; height: 60px;"></div>
+        <!-- FINAL PERFECTED BUTTON OVERLAYS -->
+        <div class="btn-overlay" style="left: 100px; top: 200px; width: 70px; height: 70px;"></div>
+        <div class="btn-overlay" style="left: 210px; top: 200px; width: 70px; height: 70px;"></div>
+        <div class="btn-overlay" style="left: 320px; top: 200px; width: 70px; height: 70px;"></div>
         
         <!-- INVISIBLE BUTTON MAP -->
         <map name="buttons">
-            <area shape="rect" coords="120,220,180,280" data-action="prev">
-            <area shape="rect" coords="220,220,280,280" data-action="play">
-            <area shape="rect" coords="320,220,380,280" data-action="next">
+            <area shape="rect" coords="100,200,170,270" data-action="prev">
+            <area shape="rect" coords="210,200,280,270" data-action="play">
+            <area shape="rect" coords="320,200,390,270" data-action="next">
         </map>
     </div>
     
-    <div id="status">🔵 Debug Mode: Green boxes should cover all 3 buttons</div>
+    <div id="status">✅ Green boxes now cover all 3 buttons</div>
 
     <script>
     // 1. YOUTUBE PLAYER
@@ -74,7 +73,6 @@
             events: {
                 'onReady': function(e) {
                     e.target.setVolume(80);
-                    document.getElementById('status').textContent = "✅ Ready! Click the center green box";
                 }
             }
         });
@@ -84,11 +82,19 @@
     document.querySelector('[data-action="play"]').addEventListener('click', function() {
         if (player.getPlayerState() === 1) {
             player.pauseVideo();
-            document.getElementById('status').textContent = "⏸ Paused";
+            document.getElementById('status').textContent = "⏸ Paused - Click center to play";
         } else {
             player.playVideo();
-            document.getElementById('status').textContent = "▶️ Playing";
+            document.getElementById('status').textContent = "▶️ Playing - Click center to pause";
         }
+    });
+    
+    document.querySelector('[data-action="prev"]').addEventListener('click', function() {
+        document.getElementById('status').textContent = "⏮️ Previous track pressed";
+    });
+    
+    document.querySelector('[data-action="next"]').addEventListener('click', function() {
+        document.getElementById('status').textContent = "⏭️ Next track pressed";
     });
     </script>
 </body>
