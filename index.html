@@ -14,8 +14,8 @@
         #boombox-container {
             position: relative;
             display: inline-block;
-            width: 430px; /* Match image width */
-            max-width: 100%; /* Responsive */
+            width: 430px; /* Matches your image width */
+            max-width: 100%;
         }
         #boombox {
             width: 100%;
@@ -23,11 +23,10 @@
             display: block;
             cursor: pointer;
         }
-        /* Visual button overlays (optional) */
         .btn-overlay {
             position: absolute;
             border: 2px solid lime;
-            background: rgba(0, 255, 0, 0.2);
+            background: rgba(0,255,0,0.2);
             pointer-events: none;
             z-index: 10;
         }
@@ -35,36 +34,130 @@
             color: cyan;
             margin-top: 15px;
             font-size: 1em;
-            min-height: 2em;
         }
     </style>
 </head>
 <body>
     <div id="boombox-container">
-        <!-- Scaled-down boombox image -->
+        <!-- Your 430x330 boombox image -->
         <img id="boombox" src="https://gorltalk.github.io/boombox.png" usemap="#buttons">
         
-        <!-- Scaled button overlays (now proportional to 430x330) -->
-        <div class="btn-overlay" style="left: 138px; top: 176px; width: 23px; height: 19px;"></div>
-        <div class="btn-overlay" style="left: 149px; top: 176px; width: 21px; height: 19px;"></div>
-        <div class="btn-overlay" style="left: 158px; top: 175px; width: 22px; height: 20px;"></div>
+        <!-- Visual overlays for debugging -->
+        <div class="btn-overlay" style="left: 138px; top: 176px; width: 45px; height: 37px;"></div>
+        <div class="btn-overlay" style="left: 149px; top: 176px; width: 41px; height: 37px;"></div>
+        <div class="btn-overlay" style="left: 158px; top: 175px; width: 44px; height: 40px;"></div>
         
-        <!-- Scaled image map coordinates -->
+        <!-- Correctly scaled image map -->
         <map name="buttons">
-            <area shape="rect" coords="138,176,161,195" data-action="prev" href="javascript:void(0)" alt="Previous">
-            <area shape="rect" coords="149,176,170,195" data-action="play" href="javascript:void(0)" alt="Play">
-            <area shape="rect" coords="158,175,180,195" data-action="next" href="javascript:void(0)" alt="Next">
+            <area shape="rect" coords="138,176,183,213" data-action="prev" href="javascript:void(0)" alt="Previous">
+            <area shape="rect" coords="149,176,190,213" data-action="play" href="javascript:void(0)" alt="Play">
+            <area shape="rect" coords="158,175,202,215" data-action="next" href="javascript:void(0)" alt="Next">
         </map>
     </div>
     
     <div id="status">🔇 Boombox ready - Press PLAY</div>
     
-    <!-- Hidden YouTube player -->
     <div id="player"></div>
 
     <script>
-        // ... [Keep the EXACT SAME JavaScript code from previous version] ...
-        // (The playlist and player functionality doesn't need to change)
+        let player;
+        let playerReady = false;
+        let currentTrackIndex = 0;
+        
+        const playlist = [
+            { id: 'dQw4w9WgXcQ', title: 'Rick Astley - Never Gonna Give You Up' },
+            { id: '9bZkp7q19f0', title: 'PSY - GANGNAM STYLE' },
+            { id: 'JGwWNGJdvx8', title: 'Ed Sheeran - Shape of You' },
+            { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito' }
+        ];
+
+        function loadYouTubePlayer() {
+            return new Promise((resolve) => {
+                window.onYouTubeIframeAPIReady = resolve;
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                document.head.appendChild(tag);
+            });
+        }
+
+        async function initPlayer() {
+            await loadYouTubePlayer();
+            
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: playlist[currentTrackIndex].id,
+                playerVars: {
+                    origin: window.location.href,
+                    autoplay: 0,
+                    controls: 0,
+                    modestbranding: 1
+                },
+                events: {
+                    'onReady': (e) => {
+                        playerReady = true;
+                        e.target.setVolume(80);
+                        document.getElementById('status').textContent = "✅ Ready! Click PLAY";
+                    },
+                    'onStateChange': (e) => {
+                        if (e.data === YT.PlayerState.ENDED) {
+                            playNext();
+                        }
+                    }
+                }
+            });
+        }
+
+        function playPrev() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            updateStatus();
+        }
+
+        function playNext() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            player.loadVideoById(playlist[currentTrackIndex].id);
+            updateStatus();
+        }
+
+        function togglePlay() {
+            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+            updateStatus();
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('status');
+            const songTitle = playlist[currentTrackIndex].title;
+            status.innerHTML = player.getPlayerState() === YT.PlayerState.PLAYING
+                ? `▶️ Playing: <strong>${songTitle}</strong>`
+                : `⏸ Paused: <strong>${songTitle}</strong>`;
+        }
+
+        function setupControls() {
+            document.querySelector('area[data-action="prev"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (playerReady) playPrev();
+            });
+
+            document.querySelector('area[data-action="play"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (playerReady) togglePlay();
+            });
+
+            document.querySelector('area[data-action="next"]').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (playerReady) playNext();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initPlayer();
+            setupControls();
+        });
     </script>
 </body>
 </html>
