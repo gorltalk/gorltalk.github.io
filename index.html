@@ -34,10 +34,21 @@
             z-index: 10;
         }
         #status {
-            color: #ff0000; /* Changed from #0ff (cyan) to #ff0000 (red) */
+            color: #ff0000;
             margin: 15px 0;
             font-size: 1.5em;
             text-transform: uppercase;
+        }
+        /* Mobile disclaimer */
+        .mobile-disclaimer {
+            display: none;
+            color: #ff0000;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            margin: 10px auto;
+            max-width: 80%;
+            border: 1px dashed #ff0000;
+            font-size: 1.2em;
         }
         /* Mobile controls */
         .mobile-controls {
@@ -48,9 +59,9 @@
             width: 100%;
         }
         .mobile-btn {
-            background: rgba(255, 0, 0, 0.2); /* Changed to red tint */
-            border: 2px solid #ff0000; /* Changed to red */
-            color: #ff0000; /* Changed to red */
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            color: #ff0000;
             font-family: 'VT323', monospace;
             font-size: 1.3em;
             padding: 8px 15px;
@@ -63,7 +74,10 @@
             .btn-overlay {
                 display: none;
             }
-            /* Show mobile controls */
+            /* Show mobile elements */
+            .mobile-disclaimer {
+                display: block;
+            }
             .mobile-controls {
                 display: flex;
             }
@@ -75,6 +89,12 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Disclaimer (only shows on mobile) -->
+    <div class="mobile-disclaimer">
+        NOTE: For best experience, try on desktop!<br>
+        Mobile playback may require tapping PLAY first.
+    </div>
+
     <div id="boombox-container">
         <img id="boombox" src="https://gorltalkradio.github.io/boombox.png" usemap="#buttons" alt="Boombox">
         
@@ -136,7 +156,7 @@
                     videoId: playlist[currentTrackIndex].id,
                     playerVars: {
                         origin: window.location.origin,
-                        autoplay: 1, // Autoplay on both mobile and desktop
+                        autoplay: isMobile ? 0 : 1, // Only autoplay on desktop
                         controls: 0,
                         modestbranding: 1,
                         enablejsapi: 1
@@ -145,7 +165,7 @@
                         'onReady': (event) => {
                             playerReady = true;
                             event.target.setVolume(80);
-                            updateStatus("▶️ NOW PLAYING");
+                            updateStatus(isMobile ? "▶️ TAP PLAY TO START" : "▶️ NOW PLAYING");
                         },
                         'onStateChange': (event) => {
                             if (event.data === YT.PlayerState.ENDED) {
@@ -210,8 +230,12 @@
             
             // Mobile controls
             document.querySelectorAll('.mobile-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const action = btn.getAttribute('data-action');
+                btn.addEventListener('click', function() {
+                    if (!playerReady) {
+                        initPlayer(); // Ensure player is ready on first tap
+                        return;
+                    }
+                    const action = this.getAttribute('data-action');
                     if (action === 'play') togglePlay();
                     else if (action === 'prev') playPrev();
                     else if (action === 'next') playNext();
